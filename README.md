@@ -59,12 +59,15 @@ El juego utiliza comunicación mediante sockets UDP.
 
 El sistema está organizado en módulos:
 
-- `ui` → interfaz gráfica
-- `game` → lógica del juego
-- `network` → comunicación UDP
-- `model` → entidades del juego
-- `audio` → manejo de sonidos
-
+- pantallas (pantallas del juego, solo lo visual)
+  - PantallaJuego-----------|
+  - PantallaMenu-------------|No manejan lógica pesada, solo dibuja y cordina
+  - PantallaFinal--------|
+- modelo (representa el estado del juego)
+  - EstadoJuego
+  - Ficha
+  - Jugador
+  - Zona
 ---
 
 ## Patrones de diseño
