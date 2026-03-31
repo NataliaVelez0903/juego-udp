@@ -1,32 +1,14 @@
 package com.proyecto.juegoudp;
 
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.Game;
+import com.proyecto.juegoudp.pantallas.PantallaJuego;
 
-/** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
-public class Main extends ApplicationAdapter {
-    private SpriteBatch batch;
-    private Texture image;
+
+// se hereda el comportamiento de libGDX
+public class Main extends Game{
 
     @Override
-    public void create() {
-        batch = new SpriteBatch();
-        image = new Texture("libgdx.png");
-    }
-
-    @Override
-    public void render() {
-        ScreenUtils.clear(0f, 0f, 1f, 1f);
-        batch.begin();
-        batch.draw(image, 50, 50);
-        batch.end();
-    }
-
-    @Override
-    public void dispose() {
-        batch.dispose();
-        image.dispose();
+    public void create (){
+        setScreen(new PantallaJuego());
     }
 }
