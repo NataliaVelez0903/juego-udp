@@ -1,33 +1,110 @@
-# JuegoUDP
+# Juego Multijugador Sockets UDP
 
-A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
+## 📌 Descripción
+Este proyecto consiste en el desarrollo de un juego multijugador en tiempo real, donde varios jugadores interactúan desde diferentes computadores.
 
-This project was generated with a template including simple application launchers and an `ApplicationAdapter` extension that draws libGDX logo.
+La comunicación entre jugadores se realiza mediante sockets UDP, permitiendo la sincronización de acciones y eventos en tiempo real.
 
-## Platforms
+El juego está basado en la captura de objetos, donde cada jugador debe arrastrar objetos hacia su zona para acumular puntos.
 
-- `core`: Main module with the application logic shared by all platforms.
-- `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
+---
 
-## Gradle
+## Objetivo del juego
+Capturar la mayor cantidad de objetos llevándolos a la zona del jugador antes de que el tiempo se agote.
 
-This project uses [Gradle](https://gradle.org/) to manage dependencies.
-The Gradle wrapper was included, so you can run Gradle tasks using `gradlew.bat` or `./gradlew` commands.
-Useful Gradle tasks and flags:
+---
 
-- `--continue`: when using this flag, errors will not stop the tasks from running.
-- `--daemon`: thanks to this flag, Gradle daemon will be used to run chosen tasks.
-- `--offline`: when using this flag, cached dependency archives will be used.
-- `--refresh-dependencies`: this flag forces validation of all dependencies. Useful for snapshot versions.
-- `build`: builds sources and archives of every project.
-- `cleanEclipse`: removes Eclipse project data.
-- `cleanIdea`: removes IntelliJ project data.
-- `clean`: removes `build` folders, which store compiled classes and built archives.
-- `eclipse`: generates Eclipse project data.
-- `idea`: generates IntelliJ project data.
-- `lwjgl3:jar`: builds application's runnable jar, which can be found at `lwjgl3/build/libs`.
-- `lwjgl3:run`: starts the application.
-- `test`: runs unit tests (if any).
+## Reglas del juego
+1. Cada jugador puede mover objetos utilizando el mouse
+2. Un objeto solo puede ser controlada por un jugador a la vez
+3. Cuando un objeto entra a la zona o base de un jugador, se suma un punto
+4. Los objetos pueden colisionar con obstáculos dentro del tablero
+5. La partida tiene una duración limitada de tiempo
+6. Gana el jugador con mayor puntaje al finalizar la partida
 
-Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
-For example, `core:clean` removes `build` folder only from the `core` project.
+
+---
+
+## Jugadores
+- Mínimo: 2 jugadores
+- Máximo: 4 jugadores
+
+Cada jugador ejecuta su propia instancia del juego.
+
+---
+
+## Comunicación (UDP)
+El juego utiliza comunicación mediante sockets UDP.
+
+- Un jugador actúa como **host** (el que crea la partida)
+- Los demás como **clientes** (los que se unen a la partida)
+- Se envían eventos como:
+    - movimiento de objetos
+    - puntajes
+    - acciones del jugador
+- Todo se sincroniza en tiempo real
+
+---
+
+## Tecnologías utilizadas
+- Java 21
+- libGDX
+- UDP (DatagramSocket)
+- Gradle
+- Git & GitHub
+
+---
+
+## Arquitectura del proyecto
+
+El sistema está organizado en módulos:
+
+- pantallas (pantallas del juego, solo lo visual)
+  - PantallaJuego-----------|
+  - PantallaMenu-------------|No manejan lógica pesada, solo dibuja y cordina
+  - PantallaFinal--------|
+- modelo (representa el estado del juego)
+  - EstadoJuego
+  - Ficha
+  - Jugador
+  - Zona
+---
+
+## Patrones de diseño
+
+- ...
+
+---
+
+## Principios SOLID
+
+- Separación de responsabilidades
+- Código modular
+- Uso de abstracciones
+- Bajo acoplamiento
+
+---
+
+## Cómo ejecutar el proyecto
+
+1. Clonar el repositorio:
+"git clone https://github.com/NataliaVelez0903/juego-udp.git"
+2. Abrir el proyecto en Intellij o NetBeans
+3. Esperar a que Gradle descargue las dependencias
+4. Ejecutar
+"Lwjgl3Launcher.java"
+
+## Flujo de trabajo 
+- main -> Versión estable 
+- develop -> Integración
+- feature/* -> desarrollo de funcionalidades 
+
+## Estructura del repositorio 
+- ...
+---
+
+## Integrantes
+- Sebastian Villaneda Gutierrez
+- Natalia Velez Orjuela
+- Juan José Giraldo Tabares 
+- Luis Carlos Gallego Morales
