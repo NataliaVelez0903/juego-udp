@@ -12,7 +12,7 @@ public class Ficha {
         this.x = x;
         this.y = y;
         this.arrastrando = false;
-        this.jugadorId = -1;
+        this.jugadorId = -1; // se inicia así para mostrar que nadie lo esta controlando
     }
 
     // Getters
