@@ -17,6 +17,7 @@ import com.proyecto.juegoudp.modelo.EstadoJuego;
 import com.proyecto.juegoudp.modelo.Ficha;
 import com.proyecto.juegoudp.modelo.Jugador;
 import com.proyecto.juegoudp.modelo.Zona;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
 
 /**
@@ -51,6 +52,8 @@ public class PantallaJuego extends ScreenAdapter {
     private SistemaColisiones sistemaColisiones;
     private SistemaCaptura sistemaCaptura; // 🔥 NUEVO
     private GestorPuntaje gestorPuntaje;
+    private BitmapFont font;
+
 
     public PantallaJuego() {
         inicializar();
@@ -94,6 +97,8 @@ public class PantallaJuego extends ScreenAdapter {
         sistemaCaptura = new SistemaCaptura(estadoJuego, gestorPuntaje); // 🔥 IMPORTANTE
 
         renderizador = new ShapeRenderer();
+
+        font = new BitmapFont();
     }
 
     private void crearFichas() {
@@ -141,7 +146,10 @@ public class PantallaJuego extends ScreenAdapter {
                 size
             );
         }
-
+        // Dibujar puntaje
+        font.draw(batch, "jugador 1:" + obtenerPuntaje (1), 20, 580);
+        font.draw(batch, "jugador 2:" + obtenerPuntaje (2), 600, 580);
+        
         batch.setColor(1, 1, 1, 1);
         batch.end();
 
@@ -159,6 +167,14 @@ public class PantallaJuego extends ScreenAdapter {
         renderizador.end();
     }
 
+    private int obtenerPuntaje (int judadorId){
+        for (Jugador j : estadoJuego.getJugadores()){
+            if (j.getId()== judadorId){
+                return j.getPuntaje();
+            }
+        }
+        return 0;
+    }
     private void limpiarPantalla() {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); //borra la pantalla
