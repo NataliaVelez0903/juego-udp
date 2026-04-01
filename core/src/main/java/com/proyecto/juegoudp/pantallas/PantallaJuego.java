@@ -149,7 +149,7 @@ public class PantallaJuego extends ScreenAdapter {
         // Dibujar puntaje
         font.draw(batch, "jugador 1:" + obtenerPuntaje (1), 20, 580);
         font.draw(batch, "jugador 2:" + obtenerPuntaje (2), 600, 580);
-        
+
         batch.setColor(1, 1, 1, 1);
         batch.end();
 
