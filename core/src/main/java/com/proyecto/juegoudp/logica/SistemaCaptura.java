@@ -19,9 +19,11 @@ import com.proyecto.juegoudp.modelo.Zona;
 public class SistemaCaptura {
 
     private EstadoJuego estadoJuego;
+    private GestorPuntaje gestorPuntaje;
 
-    public SistemaCaptura(EstadoJuego estadoJuego) {
+    public SistemaCaptura(EstadoJuego estadoJuego, GestorPuntaje gestorPuntaje) {
         this.estadoJuego = estadoJuego;
+        this.gestorPuntaje = gestorPuntaje;
     }
 
     /**
@@ -42,6 +44,8 @@ public class SistemaCaptura {
                     f.setCapturada(true);
                     // Asocia la ficha al jugador dueño de la zona
                     f.setCapturadaPor(z.getJugadorId());
+
+                    gestorPuntaje.sumarPunto(z.getJugadorId());
 
                     System.out.println("ficha capturada por jugador" + z.getJugadorId());
                     // Verifica si la posición de la ficha está dentro de la zona

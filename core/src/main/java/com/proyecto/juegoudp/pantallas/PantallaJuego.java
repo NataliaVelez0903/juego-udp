@@ -8,12 +8,14 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
+import com.proyecto.juegoudp.logica.GestorPuntaje;
 import com.proyecto.juegoudp.logica.SistemaArrastre;
 import com.proyecto.juegoudp.logica.SistemaCaptura;
 import com.proyecto.juegoudp.logica.SistemaColisiones;
 
 import com.proyecto.juegoudp.modelo.EstadoJuego;
 import com.proyecto.juegoudp.modelo.Ficha;
+import com.proyecto.juegoudp.modelo.Jugador;
 import com.proyecto.juegoudp.modelo.Zona;
 
 
@@ -48,6 +50,7 @@ public class PantallaJuego extends ScreenAdapter {
     //Se instancia un objeto para las colisiones
     private SistemaColisiones sistemaColisiones;
     private SistemaCaptura sistemaCaptura; // 🔥 NUEVO
+    private GestorPuntaje gestorPuntaje;
 
     public PantallaJuego() {
         inicializar();
@@ -62,12 +65,21 @@ public class PantallaJuego extends ScreenAdapter {
         estadoJuego.agregarZona(new Zona(1, 0, 200, 100, 200));
         estadoJuego.agregarZona(new Zona(2, 700, 200, 100, 200));
 
+        // iniciar gestor de puntaje
+
+        gestorPuntaje = new GestorPuntaje(estadoJuego);
+        sistemaCaptura = new SistemaCaptura(estadoJuego, gestorPuntaje);
+
         // Fondo
         batch = new SpriteBatch();
         fondo = new Texture("images/dayro.jpg");
 
         // Textura ficha
         texturaFicha = new Texture("images/aguardienteAmarillo.png");
+
+        // JUGADORES
+        estadoJuego.agregarJugador(new Jugador(1, "jugador 1"));
+        estadoJuego.agregarJugador(new Jugador(2, "jugador 2"));
 
         // Crear Fichas
         crearFichas();
@@ -79,7 +91,7 @@ public class PantallaJuego extends ScreenAdapter {
         int miJugadorId = 1;
         sistemaArrastre = new SistemaArrastre(estadoJuego, miJugadorId, camara);
         sistemaColisiones = new SistemaColisiones(estadoJuego);
-        sistemaCaptura = new SistemaCaptura(estadoJuego); // 🔥 IMPORTANTE
+        sistemaCaptura = new SistemaCaptura(estadoJuego, gestorPuntaje); // 🔥 IMPORTANTE
 
         renderizador = new ShapeRenderer();
     }
