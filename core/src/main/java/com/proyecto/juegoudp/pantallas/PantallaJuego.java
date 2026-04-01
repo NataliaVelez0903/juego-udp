@@ -1,11 +1,16 @@
 package com.proyecto.juegoudp.pantallas;
-
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.ScreenAdapter; //Clase de libGDX que permite crear pantallas facilmente
 import com.badlogic.gdx.graphics.OrthographicCamera;// camara 2D del juego
 import com.badlogic.gdx.Gdx; // acceso a funciones globales de libGDX
 import com.badlogic.gdx.graphics.GL20; // permite limpiar pantalla y usar colores
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;// Herramientas para dibujar formas
+/***
+ * clase para colores
+ */
 
+import com.badlogic.gdx.graphics.Color;
 // importar clases de modelo
 import com.proyecto.juegoudp.logica.SistemaArrastre;
 import com.proyecto.juegoudp.logica.SistemaColisiones;
@@ -15,6 +20,16 @@ import com.proyecto.juegoudp.modelo.Ficha;
 
 public class PantallaJuego extends ScreenAdapter {
     private OrthographicCamera camara;
+
+    private SpriteBatch batch;
+    /**
+     * para el fondo
+     * */
+    private Texture fondo;
+    /**
+     * Para la ficha
+     * */
+    private Texture texturaFicha;
     private ShapeRenderer renderizador; // se encarga de dibujar los circulos
     private EstadoJuego estadoJuego;
     /***
@@ -35,7 +50,15 @@ public class PantallaJuego extends ScreenAdapter {
 
         // 1️crear estado del juego P
         estadoJuego = new EstadoJuego();
-
+        /*
+        *Fondo
+        * */
+        batch = new SpriteBatch();
+        fondo = new Texture("images/dayro.jpg");
+        /*
+         * textura ficha
+         * */
+        texturaFicha = new Texture("images/aguardienteAmarillo.png");
         // 2⃣crear fichas
         crearFichas();
 
@@ -70,16 +93,45 @@ public class PantallaJuego extends ScreenAdapter {
          * */
         sistemaColisiones.actualizar();
         camara.update();
-        // le dice a renderizador como usar la camara
-        renderizador.setProjectionMatrix(camara.combined);
-        //empieza a dibujar formas rellenas
-        renderizador.begin(ShapeRenderer.ShapeType.Filled);
-        // recorre todas las fichas del juego
+
+        /**
+         * dibujar fondo
+         * */
+        batch.setProjectionMatrix(camara.combined);
+        batch.begin();
+        batch.draw(fondo, 0, 0, 800, 600);
+
+        // 🔥 dibujar fichas con imagen
         for (Ficha ficha : estadoJuego.getFichas()) {
-            // dibuja un circulo en la posicion de la ficha
-            renderizador.circle(ficha.getX(), ficha.getY(), 20);
+
+            float size = 100; // tamaño de la ficha
+
+            /***
+             * Se cambia el color de la ficha que se este moviendo
+             *
+             */
+            if (ficha.isArrastrando()) {
+                batch.setColor(1, 0, 0, 1); // rojo
+            } else {
+                batch.setColor(1, 1, 1, 1); // normal
+            }
+
+
+            batch.draw(
+                texturaFicha,
+                ficha.getX() - size / 2,
+                ficha.getY() - size / 2,
+                size + 40,
+                size
+            );
         }
-        renderizador.end();
+
+        // ⚠️ resetear color
+        batch.setColor(1, 1, 1, 1);
+
+        batch.end();
+
+
     }
 
     private void limpiarPantalla (){
