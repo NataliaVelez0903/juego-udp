@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.GL20; // permite limpiar pantalla y usar colore
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;// Herramientas para dibujar formas
 
 // importar clases de modelo
+import com.proyecto.juegoudp.logica.SistemaArrastre;
 import com.proyecto.juegoudp.modelo.EstadoJuego;
 import com.proyecto.juegoudp.modelo.Ficha;
 
@@ -15,30 +16,44 @@ public class PantallaJuego extends ScreenAdapter {
     private OrthographicCamera camara;
     private ShapeRenderer renderizador; // se encarga de dibujar los circulos
     private EstadoJuego estadoJuego;
+    /***
+     *
+     * Se instancia un objeto de nuestro sistema de arrastre
+     */
 
+    private SistemaArrastre sistemaArrastre;
 
     public PantallaJuego (){
         inicializar ();
     }
 
     private void inicializar(){
-        // camara
-        camara = new OrthographicCamera();
-        camara.setToOrtho(false, 800, 600);// define el tamano de la pantalla
 
-        // inicializa el objeto que dibuja los circulos
-        renderizador = new ShapeRenderer();
-
-        // crea el estado del juego
+        // 1️crear estado del juego P
         estadoJuego = new EstadoJuego();
 
-        // llamado al metodo crearFichas
+        // 2⃣crear fichas
         crearFichas();
+
+
+
+        //cámara
+        camara = new OrthographicCamera();
+        camara.setToOrtho(false, 800, 600);
+
+        int miJugadorId = 1;
+        sistemaArrastre = new SistemaArrastre(estadoJuego, miJugadorId, camara);
+
+        // 5️⃣renderizador
+        renderizador = new ShapeRenderer();
     }
     private void crearFichas(){
         estadoJuego.agregarFicha (new Ficha(1,100f,100f));
         estadoJuego.agregarFicha (new Ficha(2,200f,200f));
         estadoJuego.agregarFicha (new Ficha(3, 300f,150f));
+
+
+
     }
 
     @Override
