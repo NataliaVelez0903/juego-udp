@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;// Herramientas para dibu
 
 // importar clases de modelo
 import com.proyecto.juegoudp.logica.SistemaArrastre;
+import com.proyecto.juegoudp.logica.SistemaColisiones;
 import com.proyecto.juegoudp.modelo.EstadoJuego;
 import com.proyecto.juegoudp.modelo.Ficha;
 
@@ -22,7 +23,10 @@ public class PantallaJuego extends ScreenAdapter {
      */
 
     private SistemaArrastre sistemaArrastre;
-
+    /**
+     * Se instancia un objeto para las colisiones
+     * */
+    private SistemaColisiones sistemaColisiones;
     public PantallaJuego (){
         inicializar ();
     }
@@ -46,6 +50,8 @@ public class PantallaJuego extends ScreenAdapter {
 
         // 5️⃣renderizador
         renderizador = new ShapeRenderer();
+
+        sistemaColisiones = new SistemaColisiones(estadoJuego);
     }
     private void crearFichas(){
         estadoJuego.agregarFicha (new Ficha(1,100f,100f));
@@ -59,7 +65,10 @@ public class PantallaJuego extends ScreenAdapter {
     @Override
     public void render (float delta){
         limpiarPantalla();
-
+        /**
+         * Se encarga de las colisiones
+         * */
+        sistemaColisiones.actualizar();
         camara.update();
         // le dice a renderizador como usar la camara
         renderizador.setProjectionMatrix(camara.combined);
