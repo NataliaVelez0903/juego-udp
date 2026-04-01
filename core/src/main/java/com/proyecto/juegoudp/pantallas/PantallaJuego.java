@@ -8,13 +8,16 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
+import com.proyecto.juegoudp.logica.GestorPuntaje;
 import com.proyecto.juegoudp.logica.SistemaArrastre;
 import com.proyecto.juegoudp.logica.SistemaCaptura;
 import com.proyecto.juegoudp.logica.SistemaColisiones;
 
 import com.proyecto.juegoudp.modelo.EstadoJuego;
 import com.proyecto.juegoudp.modelo.Ficha;
+import com.proyecto.juegoudp.modelo.Jugador;
 import com.proyecto.juegoudp.modelo.Zona;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
 
 /**
@@ -48,6 +51,9 @@ public class PantallaJuego extends ScreenAdapter {
     //Se instancia un objeto para las colisiones
     private SistemaColisiones sistemaColisiones;
     private SistemaCaptura sistemaCaptura; // 🔥 NUEVO
+    private GestorPuntaje gestorPuntaje;
+    private BitmapFont font;
+
 
     public PantallaJuego() {
         inicializar();
@@ -62,12 +68,21 @@ public class PantallaJuego extends ScreenAdapter {
         estadoJuego.agregarZona(new Zona(1, 0, 200, 100, 200));
         estadoJuego.agregarZona(new Zona(2, 700, 200, 100, 200));
 
+        // iniciar gestor de puntaje
+
+        gestorPuntaje = new GestorPuntaje(estadoJuego);
+        sistemaCaptura = new SistemaCaptura(estadoJuego, gestorPuntaje);
+
         // Fondo
         batch = new SpriteBatch();
         fondo = new Texture("images/dayro.jpg");
 
         // Textura ficha
         texturaFicha = new Texture("images/aguardienteAmarillo.png");
+
+        // JUGADORES
+        estadoJuego.agregarJugador(new Jugador(1, "jugador 1"));
+        estadoJuego.agregarJugador(new Jugador(2, "jugador 2"));
 
         // Crear Fichas
         crearFichas();
@@ -79,9 +94,11 @@ public class PantallaJuego extends ScreenAdapter {
         int miJugadorId = 1;
         sistemaArrastre = new SistemaArrastre(estadoJuego, miJugadorId, camara);
         sistemaColisiones = new SistemaColisiones(estadoJuego);
-        sistemaCaptura = new SistemaCaptura(estadoJuego); // 🔥 IMPORTANTE
+        sistemaCaptura = new SistemaCaptura(estadoJuego, gestorPuntaje); // 🔥 IMPORTANTE
 
         renderizador = new ShapeRenderer();
+
+        font = new BitmapFont();
     }
 
     private void crearFichas() {
@@ -129,7 +146,10 @@ public class PantallaJuego extends ScreenAdapter {
                 size
             );
         }
-
+        // Dibujar puntaje
+        font.draw(batch, "jugador 1:" + obtenerPuntaje (1), 20, 580);
+        font.draw(batch, "jugador 2:" + obtenerPuntaje (2), 600, 580);
+        
         batch.setColor(1, 1, 1, 1);
         batch.end();
 
@@ -147,6 +167,14 @@ public class PantallaJuego extends ScreenAdapter {
         renderizador.end();
     }
 
+    private int obtenerPuntaje (int judadorId){
+        for (Jugador j : estadoJuego.getJugadores()){
+            if (j.getId()== judadorId){
+                return j.getPuntaje();
+            }
+        }
+        return 0;
+    }
     private void limpiarPantalla() {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); //borra la pantalla

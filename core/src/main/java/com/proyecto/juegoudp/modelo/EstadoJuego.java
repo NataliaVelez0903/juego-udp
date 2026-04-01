@@ -2,6 +2,7 @@ package com.proyecto.juegoudp.modelo;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.proyecto.juegoudp.modelo.Jugador;
 
 /**
  * Representa el estado global del juego en un momento dado.
@@ -25,9 +26,12 @@ public class EstadoJuego {
     // Lista de todas las fichas activas en el juego
     private List<Zona> zonas;
 
+    private List<Jugador> jugadores;
+
     public EstadoJuego(){
         fichas = new ArrayList<>();
         zonas = new ArrayList<>();
+        jugadores = new ArrayList<>();
     }
 
     // Getters
@@ -39,6 +43,14 @@ public class EstadoJuego {
         return fichas;
     }
 
+    public List<Jugador> getJugadores() {
+        return jugadores;
+    }
+
+    //Agregar jugadores
+    public void agregarJugador(Jugador jugador) {
+        jugadores.add(jugador);
+    }
 
     public void agregarFicha (Ficha ficha){
         fichas.add(ficha);

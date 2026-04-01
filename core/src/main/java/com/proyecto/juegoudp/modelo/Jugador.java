@@ -59,4 +59,5 @@ public class Jugador {
     public void sumarPunto (){
         this.puntaje++;
     }
+
 }
