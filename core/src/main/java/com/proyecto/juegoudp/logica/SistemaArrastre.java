@@ -59,7 +59,7 @@ public class SistemaArrastre extends InputAdapter {
     private void seleccionarFicha(int screenX, int screenY) {
 
         touch.set(screenX, screenY, 0);
-        camara.unproject(touch); // 🔥 clave
+        camara.unproject(touch); //
 
         float mouseX = touch.x;
         float mouseY = touch.y;
@@ -69,7 +69,7 @@ public class SistemaArrastre extends InputAdapter {
             float dx = mouseX - f.getX();
             float dy = mouseY - f.getY();
 
-            if (Math.sqrt(dx * dx + dy * dy) <= 20) {
+            if (Math.sqrt(dx * dx + dy * dy) <= 37) {
 
                 if (f.getJugadorId() == -1 || f.getJugadorId() == miJugadorId) {
 
@@ -77,8 +77,8 @@ public class SistemaArrastre extends InputAdapter {
                     f.setArrastrando(true);
                     f.setJugadorId(miJugadorId);
 
-                    offsetX = mouseX - f.getX();
-                    offsetY = mouseY - f.getY();
+                    offsetX = 0;
+                    offsetY = 0;
                 }
                 break;
             }
