@@ -19,6 +19,8 @@ import com.proyecto.juegoudp.modelo.Jugador;
 import com.proyecto.juegoudp.modelo.Zona;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
+import com.proyecto.juegoudp.logica.SistemaTiempo;
+
 
 /**
  * Pantalla principal del juego.
@@ -54,6 +56,9 @@ public class PantallaJuego extends ScreenAdapter {
     private GestorPuntaje gestorPuntaje;
     private BitmapFont font;
 
+    //Instancia de objeto SistemaTiempo para el cotronometro del juego
+    private SistemaTiempo sistemaTiempo;
+
 
     public PantallaJuego() {
         inicializar();
@@ -72,6 +77,9 @@ public class PantallaJuego extends ScreenAdapter {
 
         gestorPuntaje = new GestorPuntaje(estadoJuego);
         sistemaCaptura = new SistemaCaptura(estadoJuego, gestorPuntaje);
+
+        //Cronometro
+        sistemaTiempo = new SistemaTiempo(60);
 
         // Fondo
         batch = new SpriteBatch();
@@ -99,6 +107,9 @@ public class PantallaJuego extends ScreenAdapter {
         renderizador = new ShapeRenderer();
 
         font = new BitmapFont();
+        font.setColor(1,1,1,1);
+        font.getData().setScale(1.7f);
+
     }
 
     private void crearFichas() {
@@ -115,6 +126,9 @@ public class PantallaJuego extends ScreenAdapter {
         // Se encarga de las colisiones
         sistemaColisiones.actualizar();
         sistemaCaptura.actualizar();
+
+        //Actualizar el cronometro
+        sistemaTiempo.actualizar(delta);
 
         camara.update();
 
@@ -146,25 +160,39 @@ public class PantallaJuego extends ScreenAdapter {
                 size
             );
         }
-        // Dibujar puntaje
-        font.draw(batch, "jugador 1:" + obtenerPuntaje (1), 20, 580);
-        font.draw(batch, "jugador 2:" + obtenerPuntaje (2), 600, 580);
-        
+
         batch.setColor(1, 1, 1, 1);
         batch.end();
 
-        // =========================
-        // dibujar zonas
-        // =========================
+
+        // Dibujar cajita del cronometro y zonas
         renderizador.setProjectionMatrix(camara.combined);
+        Gdx.gl.glEnable(GL20.GL_BLEND);
         renderizador.begin(ShapeRenderer.ShapeType.Filled);
 
+        //Cajita cronometro
+        renderizador.setColor(0, 0, 0, 0.6f);
+        renderizador.rect(305, 550, 190, 38);
+
+        //Zonas
         for (Zona z : estadoJuego.getZonas()) {
             renderizador.setColor(0, 0, 1, 0.3f);
             renderizador.rect(z.getX(), z.getY(), z.getAncho(), z.getAlto());
         }
-
         renderizador.end();
+
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+
+        //Dibujar textos
+        batch.setProjectionMatrix(camara.combined);
+        batch.begin();
+
+        font.draw(batch, "jugador 1:" + obtenerPuntaje(1), 20, 580);
+        font.draw(batch, "Tiempo: " + sistemaTiempo.getTiempoFormateado(), 320, 580);
+        font.draw(batch, "jugador 2:" + obtenerPuntaje(2), 600, 580);
+
+
+        batch.end();
     }
 
     private int obtenerPuntaje (int judadorId){
