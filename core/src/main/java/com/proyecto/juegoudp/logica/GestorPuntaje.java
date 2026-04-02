@@ -21,9 +21,9 @@ public class GestorPuntaje {
                 j.setPuntaje(j.getPuntaje() + puntos);
 
                 System.out.println(
-                    "Jugador " + jugadorId +
-                        " gana " + puntos +
-                        " puntos. Total: " + j.getPuntaje()
+                    "Punto para jugador " + jugadorId +
+                        " +" + puntos +
+                        " total: " + j.getPuntaje()
                 );
             }
         }
