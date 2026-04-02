@@ -8,7 +8,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 // import com.proyecto.juegoudp.red.ClienteUDP; // 🔒 DESACTIVADO
 
-public class SistemaArrastre extends InputAdapter {
+public class SistemaArrastre extends InputAdapter implements IArrastrar, ISeleccionar{
     private OrthographicCamera camara;
     private Vector3 touch = new Vector3();
     private EstadoJuego estadoJuego;
@@ -114,6 +114,46 @@ public class SistemaArrastre extends InputAdapter {
 
             fichaSeleccionada = null;
         }
+    }
+
+    // =========================
+    // IMPLEMENTACION DE INTERFACES
+    // =========================
+
+    @Override
+    public void iniciarArrastre(float x, float y) {
+        // Reutiliza la lógica existente
+        seleccionarFicha((int)x, (int)y);
+    }
+
+    @Override
+    public void arrastrar(float x, float y) {
+        moverFicha((int)x, (int)y);
+    }
+
+    @Override
+    public void terminarArrastre() {
+        soltarFicha();
+    }
+
+    @Override
+    public boolean verificarSeleccion(float x, float y) {
+
+        touch.set(x, y, 0);
+
+        for (Ficha f : estadoJuego.getFichas()) {
+
+            float dx = touch.x - f.getX();
+            float dy = touch.y - f.getY();
+
+            if (Math.sqrt(dx * dx + dy * dy) <= 37) {
+
+                if (f.getJugadorId() == -1 || f.getJugadorId() == miJugadorId) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // =========================
