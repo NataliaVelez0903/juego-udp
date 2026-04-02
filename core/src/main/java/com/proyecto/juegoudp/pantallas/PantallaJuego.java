@@ -38,11 +38,14 @@ public class PantallaJuego extends ScreenAdapter {
     private OrthographicCamera camara;
 
     private SpriteBatch batch;
-
     // para el fondo
     private Texture fondo;
     // para la ficha
     private Texture texturaFicha;
+    /**
+     * Texturas para las zonas
+     * */
+    private Texture zona1,zona2,zona3,zona4;
     private ShapeRenderer renderizador;
     private EstadoJuego estadoJuego;
 
@@ -69,10 +72,20 @@ public class PantallaJuego extends ScreenAdapter {
         // Estado del juego
         estadoJuego = new EstadoJuego();
 
-        //crear zona de juego
-        estadoJuego.agregarZona(new Zona(1, 0, 200, 100, 200));
-        estadoJuego.agregarZona(new Zona(2, 700, 200, 100, 200));
 
+        //crear zona de juego
+        // Esquinas
+        estadoJuego.agregarZona(new Zona(1, 0, 0, 100, 100));
+        estadoJuego.agregarZona(new Zona(2, 700, 0, 100, 100));
+        estadoJuego.agregarZona(new Zona(3, 0, 500, 100, 100));
+        estadoJuego.agregarZona(new Zona(4, 700, 500, 100, 100));
+        /**
+         * Imagenes para las 4 zonas
+         * */
+        zona1 = new Texture("images/pcristiano.png");
+        zona2 = new Texture("images/pasprillaa.png");
+        zona3 = new Texture("images/pdayroo.png");
+        zona4 = new Texture("images/pnatalia.png");
         // iniciar gestor de puntaje
 
         gestorPuntaje = new GestorPuntaje(estadoJuego);
@@ -83,7 +96,7 @@ public class PantallaJuego extends ScreenAdapter {
 
         // Fondo
         batch = new SpriteBatch();
-        fondo = new Texture("images/dayro.jpg");
+        fondo = new Texture("images/fondo.jpg");
 
         // Textura ficha
         texturaFicha = new Texture("images/aguardienteAmarillo.png");
@@ -159,6 +172,8 @@ public class PantallaJuego extends ScreenAdapter {
                 size + 40,
                 size
             );
+
+
         }
 
         batch.setColor(1, 1, 1, 1);
@@ -175,10 +190,30 @@ public class PantallaJuego extends ScreenAdapter {
         renderizador.rect(305, 550, 190, 38);
 
         //Zonas
+        batch.begin();
+
+// Dibujar zonas con imagen
         for (Zona z : estadoJuego.getZonas()) {
-            renderizador.setColor(0, 0, 1, 0.3f);
-            renderizador.rect(z.getX(), z.getY(), z.getAncho(), z.getAlto());
+
+            Texture texturaZona = null;
+
+            if (z.getJugadorId() == 1) texturaZona = zona1;
+            if (z.getJugadorId() == 2) texturaZona = zona2;
+            if (z.getJugadorId() == 3) texturaZona = zona3;
+            if (z.getJugadorId() == 4) texturaZona = zona4;
+
+            if (texturaZona != null) {
+                batch.draw(
+                    texturaZona,
+                    z.getX(),
+                    z.getY(),
+                    z.getAncho(),
+                    z.getAlto()
+                );
+            }
         }
+
+        batch.end();
         renderizador.end();
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -214,5 +249,9 @@ public class PantallaJuego extends ScreenAdapter {
         batch.dispose();
         fondo.dispose();
         texturaFicha.dispose();
+        zona1.dispose();
+        zona2.dispose();
+        zona3.dispose();
+        zona4.dispose();
     }
 }

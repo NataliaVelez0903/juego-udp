@@ -1,6 +1,8 @@
 package com.proyecto.juegoudp.modelo;
 
 
+import com.badlogic.gdx.graphics.Texture;
+
 /**
  * Representa una zona o base dentro del juego.
  *
@@ -24,6 +26,7 @@ public class Zona {
     private float alto;
 
     public Zona(int jugadorId, float x, float y, float ancho, float alto) {
+
         this.jugadorId = jugadorId;
         this.x = x;
         this.y = y;
