@@ -40,8 +40,8 @@ public class PantallaJuego extends ScreenAdapter {
     private SpriteBatch batch;
     // para el fondo
     private Texture fondo;
-    // para la ficha
-    private Texture texturaFicha;
+    // texturas u iconos de las fichas
+    private Texture texturaFichaAguardiente,texturaFichaCerbeza;
     /**
      * Texturas para las zonas
      * */
@@ -55,7 +55,7 @@ public class PantallaJuego extends ScreenAdapter {
 
     //Se instancia un objeto para las colisiones
     private SistemaColisiones sistemaColisiones;
-    private SistemaCaptura sistemaCaptura; // 🔥 NUEVO
+    private SistemaCaptura sistemaCaptura; //
     private GestorPuntaje gestorPuntaje;
     private BitmapFont font;
 
@@ -99,8 +99,8 @@ public class PantallaJuego extends ScreenAdapter {
         fondo = new Texture("images/fondo.jpg");
 
         // Textura ficha
-        texturaFicha = new Texture("images/aguardienteAmarillo.png");
-
+        texturaFichaAguardiente = new Texture("images/aguardienteAmarillo.png");
+        texturaFichaCerbeza = new Texture("images/cerbeza.png");
         // JUGADORES
         estadoJuego.agregarJugador(new Jugador(1, "jugador 1"));
         estadoJuego.agregarJugador(new Jugador(2, "jugador 2"));
@@ -126,9 +126,9 @@ public class PantallaJuego extends ScreenAdapter {
     }
 
     private void crearFichas() {
-        estadoJuego.agregarFicha(new Ficha(1, 100f, 100f));
-        estadoJuego.agregarFicha(new Ficha(2, 200f, 200f));
-        estadoJuego.agregarFicha(new Ficha(3, 300f, 150f));
+        estadoJuego.agregarFicha(new Ficha(1, 100f, 100f,1));
+        estadoJuego.agregarFicha(new Ficha(2, 200f, 200f,2));
+        estadoJuego.agregarFicha(new Ficha(3, 300f, 150f,3));
     }
 
     @Override
@@ -165,8 +165,18 @@ public class PantallaJuego extends ScreenAdapter {
                 batch.setColor(1, 1, 1, 1);
             }
 
+            Texture texturaActual;
+
+            if (ficha.getValor() == 1) {
+                texturaActual = texturaFichaAguardiente;
+            } else if (ficha.getValor() == 2) {
+                texturaActual = texturaFichaCerbeza;
+            } else {
+                texturaActual = texturaFichaAguardiente; // fallback
+            }
+
             batch.draw(
-                texturaFicha,
+                texturaActual,
                 ficha.getX() - size / 2,
                 ficha.getY() - size / 2,
                 size + 40,
@@ -248,7 +258,8 @@ public class PantallaJuego extends ScreenAdapter {
         renderizador.dispose();
         batch.dispose();
         fondo.dispose();
-        texturaFicha.dispose();
+        texturaFichaAguardiente.dispose();
+        texturaFichaCerbeza.dispose();
         zona1.dispose();
         zona2.dispose();
         zona3.dispose();

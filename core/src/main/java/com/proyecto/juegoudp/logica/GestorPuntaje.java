@@ -13,15 +13,18 @@ public class GestorPuntaje {
         this.estadoJuego = estadoJuego;
     }
 
-    public void sumarPunto(int jugadorId) {
+    public void sumarPunto(int jugadorId, int puntos) {
 
         for (Jugador j : estadoJuego.getJugadores()) {
 
             if (j.getId() == jugadorId) {
-                j.sumarPunto();
+                j.setPuntaje(j.getPuntaje() + puntos);
 
-                System.out.println("Punto para jugador " + jugadorId +
-                    " total: " + j.getPuntaje());
+                System.out.println(
+                    "Jugador " + jugadorId +
+                        " gana " + puntos +
+                        " puntos. Total: " + j.getPuntaje()
+                );
             }
         }
     }
