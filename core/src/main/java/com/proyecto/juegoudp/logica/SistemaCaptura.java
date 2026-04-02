@@ -45,9 +45,13 @@ public class SistemaCaptura {
                     // Asocia la ficha al jugador dueño de la zona
                     f.setCapturadaPor(z.getJugadorId());
 
-                    gestorPuntaje.sumarPunto(z.getJugadorId());
+                    gestorPuntaje.sumarPunto(z.getJugadorId(), f.getValor());
 
-                    System.out.println("ficha capturada por jugador" + z.getJugadorId());
+                    System.out.println(
+                        "ficha capturada por jugador " + z.getJugadorId() +
+                            " valor: " + f.getValor()
+                    );
+
                     // Verifica si la posición de la ficha está dentro de la zona
                     break;
                 }

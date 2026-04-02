@@ -14,7 +14,10 @@ package com.proyecto.juegoudp.modelo;
  * siguiendo el principio de separación de responsabilidades (SOLID).
  */
 public class Ficha {
-
+    /**
+     * Valor de puntos de cada ficha
+     * */
+    private int valor;
     private int id;// identificador de la ficha
     private float x;// posicion en el eje x en la pantalla
     private float y;// posicion en el eje y en la pantalla
@@ -24,7 +27,7 @@ public class Ficha {
     private boolean capturada;
     private int capturadaPor;
 
-    public Ficha(int id, float x, float y) {
+    public Ficha(int id, float x, float y,int valor) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -32,6 +35,7 @@ public class Ficha {
         this.jugadorId = -1; // se inicia así para mostrar que nadie lo esta controlando
         this.capturada = false;
         this.capturadaPor = -1;
+        this.valor = valor;
     }
 
 
@@ -47,6 +51,10 @@ public class Ficha {
 
     public float getY() {
         return y;
+    }
+
+    public int getValor() {
+        return valor;
     }
 
     public boolean isArrastrando() {
