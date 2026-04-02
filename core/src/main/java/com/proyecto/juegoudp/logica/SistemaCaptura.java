@@ -17,13 +17,14 @@ import com.proyecto.juegoudp.modelo.Zona;
  * siguiendo el principio de bajo acoplamiento (SOLID).
  */
 public class SistemaCaptura {
-
+    private IReproducirSonido sonido;
     private EstadoJuego estadoJuego;
     private GestorPuntaje gestorPuntaje;
 
-    public SistemaCaptura(EstadoJuego estadoJuego, GestorPuntaje gestorPuntaje) {
+    public SistemaCaptura(EstadoJuego estadoJuego, GestorPuntaje gestorPuntaje, IReproducirSonido sonido) {
         this.estadoJuego = estadoJuego;
         this.gestorPuntaje = gestorPuntaje;
+        this.sonido = sonido;
     }
 
     /**
@@ -46,6 +47,13 @@ public class SistemaCaptura {
                     f.setCapturadaPor(z.getJugadorId());
 
                     gestorPuntaje.sumarPunto(z.getJugadorId(), f.getValor());
+                    /**
+                     * Reproduce sonido al llegar a la zona
+                     * */
+                    if (sonido != null) {
+                        sonido.reproducir();
+                    }
+
 
                     System.out.println(
                         "ficha capturada por jugador " + z.getJugadorId() +
