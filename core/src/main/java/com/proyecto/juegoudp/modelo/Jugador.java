@@ -15,8 +15,7 @@ public class Jugador {
         this.x = 512;
         this.y = 384;
     }
-
-    // Getters y Setters
+    // Getters y setters (todos)
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     public int getAvatarId() { return avatarId; }

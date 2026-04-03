@@ -1,8 +1,4 @@
 package com.proyecto.juegoudp.red;
-<<<<<<< Updated upstream
-// jugador normal, envia acciones, recibe estados
-public class ClienteUDP {
-=======
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -49,17 +45,13 @@ public class ClienteUDP {
     public void enviarMensaje(Mensaje msg) {
         try {
             String texto = msg.serializar();
-            System.out.println("[Cliente] Enviando: " + texto);
             byte[] data = texto.getBytes();
             DatagramPacket packet = new DatagramPacket(data, data.length, servidorIP, puertoServidor);
             socket.send(packet);
-        } catch (Exception e) {
-            System.err.println("[Cliente] Error enviando: " + e.getMessage());
-        }
+        } catch (Exception e) {}
     }
 
     public void setCallbackEstado(Consumer<String> cb) { this.callbackEstado = cb; }
     public void setCallbackMensaje(Consumer<Mensaje> cb) { this.callbackMensaje = cb; }
     public void cerrar() { ejecutando = false; socket.close(); }
->>>>>>> Stashed changes
 }

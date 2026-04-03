@@ -1,9 +1,4 @@
 package com.proyecto.juegoudp.red;
-<<<<<<< Updated upstream
-// mensaje
-public class Mensaje {
-}
-=======
 
 import java.util.Locale;
 
@@ -57,4 +52,3 @@ public class Mensaje {
     public float getVy() { return vy; }
     public String getDatos() { return datos; }
 }
->>>>>>> Stashed changes

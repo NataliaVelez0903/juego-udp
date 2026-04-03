@@ -10,8 +10,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.proyecto.juegoudp.JuegoPrincipal;
-import com.proyecto.juegoudp.red.ServidorUDP;
 import com.proyecto.juegoudp.red.ClienteUDP;
+import com.proyecto.juegoudp.red.ServidorUDP;
 
 public class PantallaEspera implements Screen {
     private JuegoPrincipal juego;
@@ -73,10 +73,8 @@ public class PantallaEspera implements Screen {
                     Gdx.app.postRunnable(() -> labelEstado.setText("Iniciando servidor..."));
                     servidor = new ServidorUDP();
                     servidor.start();
-                    // Obtener IP local
                     String ipLocal = java.net.InetAddress.getLocalHost().getHostAddress();
                     Gdx.app.postRunnable(() -> labelEstado.setText("Servidor listo en IP: " + ipLocal + "\nEsperando jugadores..."));
-                    // Esperar 3 segundos (simulación, luego se puede esperar señal de inicio)
                     Thread.sleep(3000);
                 } else {
                     Gdx.app.postRunnable(() -> labelEstado.setText("Conectando a " + ipServidor + "..."));

@@ -12,8 +12,6 @@ public class Pelota {
         this.vx = 0;
         this.vy = 0;
     }
-
-    // Getters y Setters
     public int getId() { return id; }
     public int getIdJugador() { return idJugador; }
     public void setIdJugador(int idJugador) { this.idJugador = idJugador; }

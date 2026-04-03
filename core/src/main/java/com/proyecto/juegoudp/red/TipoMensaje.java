@@ -1,3 +1,4 @@
+
 package com.proyecto.juegoudp.red;
 
 public enum TipoMensaje {
@@ -6,6 +7,5 @@ public enum TipoMensaje {
     TOMAR_PELOTA,
     MOVER_PELOTA,
     SOLTAR_PELOTA,
-    STATE,
-    MENSAJE_SIMPLE
+    STATE
 }

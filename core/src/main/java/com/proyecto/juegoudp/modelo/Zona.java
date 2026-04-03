@@ -1,10 +1,8 @@
 package com.proyecto.juegoudp.modelo;
 
 public class Zona {
-    private int id;
-    private int idJugador;  // dueño del arco
-    private float x, y;     // centro
-    private float ancho, alto;
+    private int id, idJugador;
+    private float x, y, ancho, alto;
 
     public Zona(int id, int idJugador, float x, float y, float ancho, float alto) {
         this.id = id;
@@ -14,12 +12,10 @@ public class Zona {
         this.ancho = ancho;
         this.alto = alto;
     }
-
     public boolean contienePunto(float px, float py) {
         return px >= x - ancho/2 && px <= x + ancho/2 &&
                 py >= y - alto/2 && py <= y + alto/2;
     }
-
     public int getId() { return id; }
     public int getIdJugador() { return idJugador; }
     public float getX() { return x; }
