@@ -2,6 +2,8 @@ package com.proyecto.juegoudp;
 
 import com.badlogic.gdx.Game;
 import com.proyecto.juegoudp.modelo.ConfiguracionPartida;
+import com.proyecto.juegoudp.pantallas.PantallaEspera;
+import com.proyecto.juegoudp.pantallas.PantallaJuego;
 import com.proyecto.juegoudp.pantallas.PantallaMenu;
 
 public class JuegoPrincipal extends Game {
@@ -23,10 +25,12 @@ public class JuegoPrincipal extends Game {
     public void setConfiguracion(ConfiguracionPartida config) { this.configuracion = config; }
 
     public void iniciarJuego(boolean esHost, String ipServidor) {
-        setScreen(new com.proyecto.juegoudp.pantallas.PantallaJuego(this, esHost, ipServidor,
-                nombreJugador, avatarSeleccionado));
+        setScreen(new PantallaEspera(this, esHost, ipServidor));
     }
 
+    public void iniciarPartida(boolean esHost, String ipServidor) {
+        setScreen(new PantallaJuego(this, esHost, ipServidor, nombreJugador, avatarSeleccionado));
+    }
     public void volverAlMenu() {
         setScreen(new PantallaMenu(this));
     }

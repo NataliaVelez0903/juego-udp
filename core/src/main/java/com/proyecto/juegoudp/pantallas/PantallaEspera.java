@@ -75,14 +75,14 @@ public class PantallaEspera implements Screen {
                     servidor.start();
                     String ipLocal = java.net.InetAddress.getLocalHost().getHostAddress();
                     Gdx.app.postRunnable(() -> labelEstado.setText("Servidor listo en IP: " + ipLocal + "\nEsperando jugadores..."));
-                    Thread.sleep(3000);
+                    Thread.sleep(15000);
                 } else {
                     Gdx.app.postRunnable(() -> labelEstado.setText("Conectando a " + ipServidor + "..."));
                     cliente = new ClienteUDP(ipServidor);
                     Gdx.app.postRunnable(() -> labelEstado.setText("Conectado. Esperando inicio del host..."));
-                    Thread.sleep(3000);
+                    Thread.sleep(15000);
                 }
-                Gdx.app.postRunnable(() -> juego.iniciarJuego(esHost, ipServidor));
+                Gdx.app.postRunnable(() -> juego.iniciarPartida(esHost, ipServidor));
             } catch (Exception e) {
                 Gdx.app.postRunnable(() -> labelEstado.setText("Error: " + e.getMessage()));
             }
@@ -102,7 +102,8 @@ public class PantallaEspera implements Screen {
         stage.act(delta);
         stage.draw();
     }
-    @Override public void resize(int w, int h) { stage.getViewport().update(w,h,true); }
+    @Override
+    public void resize(int w, int h) { stage.getViewport().update(w,h,true); }
     @Override public void dispose() { stage.dispose(); skin.dispose(); }
     @Override public void show() {}
     @Override public void pause() {}
