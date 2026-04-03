@@ -1,7 +1,7 @@
-package com.proyecto.juegoudp.logica;
+/*package com.proyecto.juegoudp.fisica;
 
 import com.proyecto.juegoudp.modelo.EstadoJuego;
-import com.proyecto.juegoudp.modelo.Ficha;
+import com.proyecto.juegoudp.modelo.Pelota;
 
 /**
  * Sistema encargado de detectar y resolver colisiones entre fichas.
@@ -13,7 +13,7 @@ import com.proyecto.juegoudp.modelo.Ficha;
  * Este sistema opera únicamente sobre el estado del juego (EstadoJuego),
  * sin depender de otros sistemas, cumpliendo bajo acoplamiento (SOLID).
  */
-
+/*
 public class SistemaColisiones {
 
     private EstadoJuego estadoJuego;
@@ -32,17 +32,17 @@ public class SistemaColisiones {
      * Se usa un doble bucle evitando repeticiones:
      * - i recorre todas las fichas
      * - j empieza desde i+1 para no comparar la misma pareja dos veces
-     */
+     *//*
     public void actualizar() {
 
         // recorrer todas las parejas de fichas
         for (int i = 0; i < estadoJuego.getFichas().size(); i++) {
 
-            Ficha a = estadoJuego.getFichas().get(i);
+            Pelota a = estadoJuego.getFichas().get(i);
 
             for (int j = i + 1; j < estadoJuego.getFichas().size(); j++) {
 
-                Ficha b = estadoJuego.getFichas().get(j);
+                Pelota b = estadoJuego.getFichas().get(j);
 
                 resolverColision(a, b);
             }
@@ -56,8 +56,8 @@ public class SistemaColisiones {
      * @param a primera ficha
      * @param b segunda ficha
      */
-
-    private void resolverColision(Ficha a, Ficha b) {
+/*
+    private void resolverColision(Pelota a, Pelota b) {
         // Vector de diferencia entre posiciones
         float dx = b.getX() - a.getX();
         float dy = b.getY() - a.getY();
@@ -70,7 +70,7 @@ public class SistemaColisiones {
          * Condición de colisión:
          * - distancia menor a la mínima (se están solapando)
          * - distancia mayor que 0 (evita división por cero)
-         */
+         *//*
         if (distancia < minDist && distancia > 0) {
 
             // Cantidad de superposición entre las fichas
@@ -83,7 +83,7 @@ public class SistemaColisiones {
             /**
              * Separar ambas fichas en direcciones opuestas
              * Cada una se mueve la mitad del solapamiento
-             */
+             *//*
             a.setX(a.getX() - nx * overlap / 2);
             a.setY(a.getY() - ny * overlap / 2);
 
@@ -91,4 +91,4 @@ public class SistemaColisiones {
             b.setY(b.getY() + ny * overlap / 2);
         }
     }
-}
+}*/

@@ -1,63 +1,35 @@
 package com.proyecto.juegoudp.modelo;
 
-
-/**
- * Representa un jugador dentro del juego.
- *
- * Responsabilidades:
- * - Identificar al jugador
- * - Almacenar su nombre
- * - Gestionar su puntaje durante la partida
- *
- * Nota:
- * Esta clase forma parte del modelo (solo datos),
- * no contiene lógica de juego compleja.
- */
 public class Jugador {
-    private int id;
+    private int id, avatarId, puntaje;
     private String nombre;
-    private int puntaje;
+    private float x, y;
+    private boolean tienePelota;
 
-    public Jugador(int id, String nombre) {
+    public Jugador(int id, String nombre, int avatarId) {
         this.id = id;
         this.nombre = nombre;
+        this.avatarId = avatarId;
         this.puntaje = 0;
+        this.tienePelota = false;
+        this.x = 512;
+        this.y = 384;
     }
 
-    // Getters
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    // Setters
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public int getPuntaje() {
-        return puntaje;
-    }
-
-    public void setPuntaje(int puntaje) {
-        this.puntaje = puntaje;
-    }
-
-    /**
-     * Incrementa el puntaje del jugador en 1.
-     *
-     * Se utiliza cuando el jugador captura una ficha.
-     */
-    public void sumarPunto (){
-        this.puntaje++;
-    }
-
+    // Getters y Setters
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+    public int getAvatarId() { return avatarId; }
+    public void setAvatarId(int avatarId) { this.avatarId = avatarId; }
+    public int getPuntaje() { return puntaje; }
+    public void setPuntaje(int puntaje) { this.puntaje = puntaje; }
+    public void sumarPuntaje(int puntos) { this.puntaje += puntos; }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    public float getX() { return x; }
+    public void setX(float x) { this.x = x; }
+    public float getY() { return y; }
+    public void setY(float y) { this.y = y; }
+    public boolean isTienePelota() { return tienePelota; }
+    public void setTienePelota(boolean tienePelota) { this.tienePelota = tienePelota; }
 }
