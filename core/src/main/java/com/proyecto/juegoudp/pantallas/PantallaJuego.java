@@ -32,11 +32,16 @@ public class PantallaJuego implements Screen {
      * */
     private Texture fondo;
     /**
-     *
      * Variable que almacena la textura de
      * nuestra ficha (balon)
      * */
     private Texture pelotaImagen;
+
+    /**
+     * Variable que almacena la textura de
+     * nuestra zona de puntaje
+     * */
+    private Texture zonaImagen;
     private OrthographicCamera camera;
     private ShapeRenderer shape;
     private SpriteBatch batch;
@@ -73,6 +78,13 @@ public class PantallaJuego implements Screen {
          * Se carga imagen de nuestra ficha (balon)
          * */
         pelotaImagen = new Texture(Gdx.files.internal("images/ficha.png"));
+
+        /**
+         * Se carga imagen de nuestra zona de puntos
+         * */
+        zonaImagen = new Texture(Gdx.files.internal("images/zonapuntos.jpg"));
+
+
 
         try {
             if (esHost) {
@@ -249,29 +261,10 @@ public class PantallaJuego implements Screen {
         batch.draw(fondo, 0, 0, 1024, 768);
         batch.end();
 
-        // -------- 2. SHAPES (JUGADORES + ZONAS) --------
+        // -------- 2. SHAPES (SOLO JUGADORES) --------
         shape.setProjectionMatrix(camera.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
 
-
-
-
-        /**
-         * Se dibujan las zonas en el centro de la pantalla
-         * */
-        float yZona = 768 / 2f;
-
-        shape.setColor(1, 0, 0, 1);
-
-        /**
-         * Se dibuja zona izquierda
-         * */
-        shape.rect(100 - 40, yZona - 40, 80, 80);
-
-        /**
-         * Se dibuja zona derecha
-         * */
-        shape.rect(924 - 40, yZona - 40, 80, 80);
         // Jugadores (CÍRCULOS)
         for (Jugador j : estadoLocal.getJugadores().values()) {
             float[] c = colores[j.getAvatarId() % colores.length];
@@ -279,18 +272,35 @@ public class PantallaJuego implements Screen {
             shape.circle(j.getX(), j.getY(), 20);
 
             // indicador si tiene pelota
-           // if (j.isTienePelota()) {
+            // if (j.isTienePelota()) {
             //    shape.setColor(1, 1, 1, 1);
-             //   shape.circle(j.getX() + 15, j.getY() + 15, 8);
-         //   }
+            //    shape.circle(j.getX() + 15, j.getY() + 15, 8);
+            // }
         }
 
         shape.end();
 
+        // -------- 3. TEXTURAS (ZONAS Y PELOTA) --------
+        batch.begin();
+
+        /**
+         * Se dibujan las zonas en el centro de la pantalla
+         * */
+        float yZona = 768 / 2f;
+
+        /**
+         * Se dibuja zona izquierda con imagen
+         * */
+        batch.draw(zonaImagen, 100 - 40, yZona - 40, 80, 80);
+
+        /**
+         * Se dibuja zona derecha con imagen
+         * */
+        batch.draw(zonaImagen, 924 - 40, yZona - 40, 80, 80);
+
         /**
          * Se dibuja la pelota con la imagen asignada
          * */
-        batch.begin();
         for (Pelota p : estadoLocal.getPelotas().values()) {
             batch.draw(pelotaImagen,
                 /**
