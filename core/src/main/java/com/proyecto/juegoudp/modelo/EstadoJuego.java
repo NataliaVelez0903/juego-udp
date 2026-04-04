@@ -22,4 +22,6 @@ public class EstadoJuego {
     public void agregarZona(Zona z) { zonas.put(z.getId(), z); }
     public Zona getZona(int id) { return zonas.get(id); }
     public Map<Integer, Zona> getZonas() { return zonas; }
+    /**
+     * hghghg*/
 }
