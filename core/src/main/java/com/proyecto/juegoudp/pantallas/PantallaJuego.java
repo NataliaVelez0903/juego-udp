@@ -4,6 +4,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+
+/**
+ *
+ * Libreria para las texturas del juego
+ * */
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -21,6 +27,10 @@ import com.proyecto.juegoudp.modelo.EstadoJuego;
 
 public class PantallaJuego implements Screen {
     private JuegoPrincipal juego;
+    /**
+     * Variable que almacena el fondo del juego
+     * */
+    private Texture fondo;
     private OrthographicCamera camera;
     private ShapeRenderer shape;
     private SpriteBatch batch;
@@ -47,6 +57,11 @@ public class PantallaJuego implements Screen {
         this.font = new BitmapFont();
         this.camera = new OrthographicCamera(1024, 768);
         camera.setToOrtho(false);
+
+        /**
+         * Se carga fondo de juego
+         * */
+        fondo = new Texture(Gdx.files.internal("images/fondo.jpg"));
 
         try {
             if (esHost) {
@@ -201,6 +216,15 @@ public class PantallaJuego implements Screen {
         Gdx.gl.glClearColor(0.2f,0.3f,0.4f,1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         camera.update();
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        /**
+         *
+         * Se dibuja el fondo
+         * Tamanio pantalla
+         * */
+        batch.draw(fondo, 0, 0, 1024, 768);
+        batch.end();
         shape.setProjectionMatrix(camera.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
         // Zonas (arcos) simples
