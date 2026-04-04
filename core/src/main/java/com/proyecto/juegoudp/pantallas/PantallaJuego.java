@@ -24,6 +24,7 @@ import com.proyecto.juegoudp.red.TipoMensaje;
 import com.proyecto.juegoudp.modelo.Jugador;
 import com.proyecto.juegoudp.modelo.Pelota;
 import com.proyecto.juegoudp.modelo.EstadoJuego;
+import com.proyecto.juegoudp.sonido.GestorSonidos;
 
 public class PantallaJuego implements Screen {
     private JuegoPrincipal juego;
@@ -42,6 +43,14 @@ public class PantallaJuego implements Screen {
      * nuestra zona de puntaje
      * */
     private Texture zonaImagen;
+
+    /**
+     * Se instancia atributo para gestion de sonidos
+     * */
+    private GestorSonidos gestorSonidos;
+
+    private int ultimoPuntajeIzquierda = 0; // Para detectar cambios
+    private int ultimoPuntajeDerecha = 0;   // Para detectar cambios
     private OrthographicCamera camera;
     private ShapeRenderer shape;
     private SpriteBatch batch;
@@ -68,6 +77,12 @@ public class PantallaJuego implements Screen {
         this.font = new BitmapFont();
         this.camera = new OrthographicCamera(1024, 768);
         camera.setToOrtho(false);
+
+
+        // Inicializar gestor de sonidos
+        this.gestorSonidos = GestorSonidos.getInstancia();
+
+        /**v
 
         /**
          * Se carga fondo de juego
@@ -171,9 +186,47 @@ public class PantallaJuego implements Screen {
         }
     }
 
+    /**
+     * Verifica si se ha marcado un punto y reproduce el sonido correspondiente
+     * Principio de Abierto/Cerrado (OCP) - Extendemos funcionalidad sin modificar código existente
+     */
+    private void verificarYReproducirSonidoPunto() {
+        // Calcular puntajes actuales (esto dependerá de tu lógica de juego)
+        int puntajeIzquierda = 0;
+        int puntajeDerecha = 0;
+
+        // Aquí debes implementar la lógica para obtener los puntajes actuales
+        // Asumiendo que tienes alguna forma de saber qué jugador está en qué equipo
+        for (Jugador j : estadoLocal.getJugadores().values()) {
+            // Ejemplo: si el avatarId es par es equipo izquierdo, impar equipo derecho
+            if (j.getAvatarId() % 2 == 0) {
+                puntajeIzquierda += j.getPuntaje();
+            } else {
+                puntajeDerecha += j.getPuntaje();
+            }
+        }
+
+        // Verificar si hubo cambio en los puntajes
+        if (puntajeIzquierda > ultimoPuntajeIzquierda || puntajeDerecha > ultimoPuntajeDerecha) {
+            gestorSonidos.reproducirGol();
+            System.out.println("[PantallaJuego] ¡GOL! Reproduciendo sonido");
+        }
+
+        // Actualizar últimos puntajes
+        ultimoPuntajeIzquierda = puntajeIzquierda;
+        ultimoPuntajeDerecha = puntajeDerecha;
+    }
+
     private void actualizarEstado(String estado) {
         String[] partes = estado.split("\\|");
         if (partes.length < 3) return;
+
+        // Guardar puntajes antes de actualizar
+        int puntajeTotalAnterior = 0;
+        for (Jugador j : estadoLocal.getJugadores().values()) {
+            puntajeTotalAnterior += j.getPuntaje();
+        }
+
         estadoLocal.getJugadores().clear();
         String[] jugs = partes[1].split(";");
         for (String j : jugs) {
@@ -195,6 +248,19 @@ public class PantallaJuego implements Screen {
                 if (nom.equals(miNombre)) miId = id;
             }
         }
+
+        // Calcular puntaje total después de actualizar
+        int puntajeTotalNuevo = 0;
+        for (Jugador j : estadoLocal.getJugadores().values()) {
+            puntajeTotalNuevo += j.getPuntaje();
+        }
+
+        // Si aumentó el puntaje total, reproduce sonido de gol
+        if (puntajeTotalNuevo > puntajeTotalAnterior) {
+            gestorSonidos.reproducirGol();
+            System.out.println("[PantallaJuego] ¡Se marcó un punto! Reproduciendo sonido de gol");
+        }
+
         estadoLocal.getPelotas().clear();
         String[] pels = partes[2].split(";");
         for (String p : pels) {
@@ -326,7 +392,19 @@ public class PantallaJuego implements Screen {
     }
 
     @Override public void resize(int w, int h) { camera.viewportWidth = w; camera.viewportHeight = h; camera.update(); }
-    @Override public void dispose() { shape.dispose(); batch.dispose(); font.dispose(); if(cliente!=null) cliente.cerrar(); if(servidor!=null) servidor.detener(); }
+    @Override public void dispose() {
+        shape.dispose();
+        batch.dispose();
+        font.dispose();
+        if(cliente!=null) cliente.cerrar();
+        if(servidor!=null) servidor.detener();
+
+        /**
+         * Liberar sonidos
+         * */
+        if(gestorSonidos != null) gestorSonidos.dispose();
+
+    }
     @Override public void show() {}
     @Override public void pause() {}
     @Override public void resume() {}
