@@ -38,12 +38,20 @@ public class ServidorUDP extends Thread {
             float y = 384 + (i / 3 - 1) * 80;
             estado.agregarPelota(new Pelota(i, x, y));
         }
-        // Zonas de gol
-        int[] xGoles = {100, 924, 100, 924, 100, 924};
-        int[] yGoles = {300, 300, 200, 200, 400, 400};
-        for (int i = 0; i < 6; i++) {
-            estado.agregarZona(new Zona(i, i+1, xGoles[i], yGoles[i], 80, 120));
-        }
+        /**
+         * Zona de gol centrada
+         * */
+        float yCentro = 384;
+
+        /**
+         * Zona izquierdd
+         * Z*/
+        estado.agregarZona(new Zona(0, 1, 100, yCentro, 80, 80));
+
+        /**
+         * Zona derecha
+         * */
+        estado.agregarZona(new Zona(1, 2, 924, yCentro, 80, 80));
     }
 
     @Override

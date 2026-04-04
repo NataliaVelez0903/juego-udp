@@ -253,14 +253,25 @@ public class PantallaJuego implements Screen {
         shape.setProjectionMatrix(camera.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
 
-        // Zonas
-        shape.setColor(0.8f, 0.8f, 0.8f, 0.5f);
-        for (int i = 0; i < 6; i++) {
-            float x = (i < 3) ? 100 : 924;
-            float y = (i % 3) * 120 + 200;
-            shape.rect(x - 40, y - 60, 80, 120);
-        }
 
+
+
+        /**
+         * Se dibujan las zonas en el centro de la pantalla
+         * */
+        float yZona = 768 / 2f;
+
+        shape.setColor(1, 0, 0, 1);
+
+        /**
+         * Se dibuja zona izquierda
+         * */
+        shape.rect(100 - 40, yZona - 40, 80, 80);
+
+        /**
+         * Se dibuja zona derecha
+         * */
+        shape.rect(924 - 40, yZona - 40, 80, 80);
         // Jugadores (CÍRCULOS)
         for (Jugador j : estadoLocal.getJugadores().values()) {
             float[] c = colores[j.getAvatarId() % colores.length];
@@ -268,10 +279,10 @@ public class PantallaJuego implements Screen {
             shape.circle(j.getX(), j.getY(), 20);
 
             // indicador si tiene pelota
-            if (j.isTienePelota()) {
-                shape.setColor(1, 1, 1, 1);
-                shape.circle(j.getX() + 15, j.getY() + 15, 8);
-            }
+           // if (j.isTienePelota()) {
+            //    shape.setColor(1, 1, 1, 1);
+             //   shape.circle(j.getX() + 15, j.getY() + 15, 8);
+         //   }
         }
 
         shape.end();
