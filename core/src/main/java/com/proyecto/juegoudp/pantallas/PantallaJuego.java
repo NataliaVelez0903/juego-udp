@@ -82,9 +82,12 @@ public class PantallaJuego implements Screen {
         // Inicializar gestor de sonidos
         this.gestorSonidos = GestorSonidos.getInstancia();
 
+        // Iniciar música de fondo
+        this.gestorSonidos.iniciarMusicaFondo();
+
         /**v
 
-        /**
+         /**
          * Se carga fondo de juego
          * */
         fondo = new Texture(Gdx.files.internal("images/fondo.jpg"));
@@ -128,6 +131,14 @@ public class PantallaJuego implements Screen {
                     if (k==Keys.S) down=true;
                     if (k==Keys.A) left=true;
                     if (k==Keys.D) right=true;
+                    // Tecla M para activar/desactivar música
+                    if (k==Keys.M) {
+                        if (gestorSonidos.isMusicaSonando()) {
+                            gestorSonidos.setMusicaActivada(false);
+                        } else {
+                            gestorSonidos.setMusicaActivada(true);
+                        }
+                    }
                     return true;
                 }
                 @Override
@@ -255,10 +266,11 @@ public class PantallaJuego implements Screen {
             puntajeTotalNuevo += j.getPuntaje();
         }
 
-        // Si aumentó el puntaje total, reproduce sonido de gol
+        // Si aumentó el puntaje total, reproduce sonido de gol con volumen alto
         if (puntajeTotalNuevo > puntajeTotalAnterior) {
-            gestorSonidos.reproducirGol();
-            System.out.println("[PantallaJuego] ¡Se marcó un punto! Reproduciendo sonido de gol");
+            // Reproducir con volumen 1.0f (máximo)
+            gestorSonidos.reproducirGol(1.0f);
+            System.out.println("[PantallaJuego] ¡Se marcó un punto! Reproduciendo sonido de gol a máximo volumen");
         }
 
         estadoLocal.getPelotas().clear();
@@ -380,6 +392,13 @@ public class PantallaJuego implements Screen {
         }
 
         // -------- 4. UI --------
+        // Mostrar estado de la música
+        if (gestorSonidos != null && !gestorSonidos.isMusicaSonando()) {
+            font.draw(batch, "MUSICA: OFF (Presiona M para activar)", 20, 50);
+        } else {
+            font.draw(batch, "MUSICA: ON (Presiona M para desactivar)", 20, 50);
+        }
+
         font.draw(batch, "PUNTAJES:", 20, 740);
 
         int y = 710;
@@ -392,6 +411,7 @@ public class PantallaJuego implements Screen {
     }
 
     @Override public void resize(int w, int h) { camera.viewportWidth = w; camera.viewportHeight = h; camera.update(); }
+
     @Override public void dispose() {
         shape.dispose();
         batch.dispose();
@@ -403,10 +423,33 @@ public class PantallaJuego implements Screen {
          * Liberar sonidos
          * */
         if(gestorSonidos != null) gestorSonidos.dispose();
-
     }
-    @Override public void show() {}
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+
+    @Override public void show() {
+        // Reiniciar música cuando se muestra la pantalla
+        if (gestorSonidos != null) {
+            gestorSonidos.iniciarMusicaFondo();
+        }
+    }
+
+    @Override public void pause() {
+        // Pausar música cuando el juego se pausa
+        if (gestorSonidos != null) {
+            gestorSonidos.pausarMusicaFondo();
+        }
+    }
+
+    @Override public void resume() {
+        // Reanudar música cuando el juego se reanuda
+        if (gestorSonidos != null) {
+            gestorSonidos.reanudarMusicaFondo();
+        }
+    }
+
+    @Override public void hide() {
+        // Detener música cuando se oculta la pantalla
+        if (gestorSonidos != null) {
+            gestorSonidos.detenerMusicaFondo();
+        }
+    }
 }

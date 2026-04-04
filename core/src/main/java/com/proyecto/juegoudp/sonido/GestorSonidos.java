@@ -1,7 +1,7 @@
 package com.proyecto.juegoudp.sonido;
 
-
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 
@@ -12,10 +12,16 @@ import com.badlogic.gdx.files.FileHandle;
 public class GestorSonidos {
     private static GestorSonidos instancia;
     private Sound sonidoGol;
-    private boolean disponible = true;
+    private Music musicaFondo;
+    private boolean sonidosDisponibles = true;
+    private boolean musicaDisponible = true;
+    private float volumenEfectos = 1.0f;  // Volumen máximo para efectos
+    private float volumenMusica = 0.3f;    // Volumen más bajo para la música de fondo (para que se escuche el gol)
+    private boolean musicaActivada = true;
 
     private GestorSonidos() {
         cargarSonidos();
+        cargarMusica();
     }
 
     /**
@@ -29,7 +35,7 @@ public class GestorSonidos {
     }
 
     /**
-     * Carga todos los sonidos del juego
+     * Carga todos los efectos de sonido del juego
      */
     private void cargarSonidos() {
         try {
@@ -37,23 +43,69 @@ public class GestorSonidos {
             if (archivoSonido.exists()) {
                 sonidoGol = Gdx.audio.newSound(archivoSonido);
                 System.out.println("[GestorSonidos] Sonido de gol cargado correctamente");
+                System.out.println("[GestorSonidos] Ruta del sonido: " + archivoSonido.path());
             } else {
                 System.err.println("[GestorSonidos] No se encontró el archivo: sonidos/gol.wav");
-                disponible = false;
+                System.err.println("[GestorSonidos] Buscando en: " + Gdx.files.internal("sonidos").exists());
+                sonidosDisponibles = false;
             }
         } catch (Exception e) {
             System.err.println("[GestorSonidos] Error al cargar el sonido: " + e.getMessage());
-            disponible = false;
+            sonidosDisponibles = false;
         }
     }
 
     /**
-     * Reproduce el sonido de gol
+     * Carga la música de fondo del juego
+     */
+    private void cargarMusica() {
+        try {
+            FileHandle archivoMusica = Gdx.files.internal("sonidos/sonidofondo.wav");
+            if (archivoMusica.exists()) {
+                musicaFondo = Gdx.audio.newMusic(archivoMusica);
+                musicaFondo.setLooping(true);
+                musicaFondo.setVolume(volumenMusica);
+                System.out.println("[GestorSonidos] Música de fondo cargada correctamente");
+            } else {
+                System.err.println("[GestorSonidos] No se encontró el archivo: sonidos/sonidofondo.wav");
+                musicaDisponible = false;
+            }
+        } catch (Exception e) {
+            System.err.println("[GestorSonidos] Error al cargar la música: " + e.getMessage());
+            musicaDisponible = false;
+        }
+    }
+
+    /**
+     * Reproduce el sonido de gol con volumen alto
      */
     public void reproducirGol() {
-        if (disponible && sonidoGol != null) {
+        if (sonidosDisponibles && sonidoGol != null) {
             try {
-                sonidoGol.play(1.0f); // Volumen al 100%
+                // Reproducir con volumen máximo (1.0f) y sin pan (0.0f)
+                long id = sonidoGol.play(volumenEfectos);
+                // También podemos establecer el volumen específico para esta reproducción
+                sonidoGol.setVolume(id, volumenEfectos);
+                System.out.println("[GestorSonidos] Reproduciendo sonido de gol con volumen: " + volumenEfectos);
+            } catch (Exception e) {
+                System.err.println("[GestorSonidos] Error al reproducir sonido: " + e.getMessage());
+            }
+        } else {
+            System.err.println("[GestorSonidos] No se pudo reproducir el sonido - disponible: " + sonidosDisponibles + ", sonido: " + sonidoGol);
+        }
+    }
+
+    /**
+     * Reproduce el sonido de gol con volumen específico
+     * @param volumen Valor entre 0.0 y 1.0
+     */
+    public void reproducirGol(float volumen) {
+        if (sonidosDisponibles && sonidoGol != null) {
+            try {
+                float vol = Math.max(0f, Math.min(3f, volumen));
+                long id = sonidoGol.play(vol);
+                sonidoGol.setVolume(id, vol);
+                System.out.println("[GestorSonidos] Reproduciendo sonido de gol con volumen personalizado: " + vol);
             } catch (Exception e) {
                 System.err.println("[GestorSonidos] Error al reproducir sonido: " + e.getMessage());
             }
@@ -61,12 +113,115 @@ public class GestorSonidos {
     }
 
     /**
-     * Libera los recursos de sonido
+     * Inicia la reproducción de la música de fondo
+     */
+    public void iniciarMusicaFondo() {
+        if (musicaActivada && musicaDisponible && musicaFondo != null) {
+            try {
+                if (!musicaFondo.isPlaying()) {
+                    musicaFondo.setVolume(volumenMusica);
+                    musicaFondo.play();
+                    System.out.println("[GestorSonidos] Música de fondo iniciada con volumen: " + volumenMusica);
+                }
+            } catch (Exception e) {
+                System.err.println("[GestorSonidos] Error al iniciar música: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Detiene la reproducción de la música de fondo
+     */
+    public void detenerMusicaFondo() {
+        if (musicaFondo != null && musicaFondo.isPlaying()) {
+            try {
+                musicaFondo.stop();
+                System.out.println("[GestorSonidos] Música de fondo detenida");
+            } catch (Exception e) {
+                System.err.println("[GestorSonidos] Error al detener música: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Pausa la música de fondo
+     */
+    public void pausarMusicaFondo() {
+        if (musicaFondo != null && musicaFondo.isPlaying()) {
+            try {
+                musicaFondo.pause();
+                System.out.println("[GestorSonidos] Música de fondo pausada");
+            } catch (Exception e) {
+                System.err.println("[GestorSonidos] Error al pausar música: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Reanuda la música de fondo
+     */
+    public void reanudarMusicaFondo() {
+        if (musicaActivada && musicaDisponible && musicaFondo != null) {
+            try {
+                if (!musicaFondo.isPlaying()) {
+                    musicaFondo.play();
+                    System.out.println("[GestorSonidos] Música de fondo reanudada");
+                }
+            } catch (Exception e) {
+                System.err.println("[GestorSonidos] Error al reanudar música: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Establece el volumen de la música de fondo
+     */
+    public void setVolumenMusica(float volumen) {
+        this.volumenMusica = Math.max(0f, Math.min(1f, volumen));
+        if (musicaFondo != null) {
+            musicaFondo.setVolume(this.volumenMusica);
+            System.out.println("[GestorSonidos] Volumen de música ajustado a: " + this.volumenMusica);
+        }
+    }
+
+    /**
+     * Establece el volumen de los efectos de sonido
+     */
+    public void setVolumenEfectos(float volumen) {
+        this.volumenEfectos = Math.max(0f, Math.min(1f, volumen));
+        System.out.println("[GestorSonidos] Volumen de efectos ajustado a: " + this.volumenEfectos);
+    }
+
+    /**
+     * Activa o desactiva la música de fondo
+     */
+    public void setMusicaActivada(boolean activada) {
+        this.musicaActivada = activada;
+        if (activada) {
+            iniciarMusicaFondo();
+        } else {
+            detenerMusicaFondo();
+        }
+    }
+
+    /**
+     * Verifica si la música de fondo está sonando
+     */
+    public boolean isMusicaSonando() {
+        return musicaFondo != null && musicaFondo.isPlaying();
+    }
+
+    /**
+     * Libera los recursos de sonido y música
      */
     public void dispose() {
         if (sonidoGol != null) {
             sonidoGol.dispose();
             sonidoGol = null;
+        }
+        if (musicaFondo != null) {
+            musicaFondo.dispose();
+            musicaFondo = null;
         }
     }
 }
