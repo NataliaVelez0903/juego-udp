@@ -31,6 +31,12 @@ public class PantallaJuego implements Screen {
      * Variable que almacena el fondo del juego
      * */
     private Texture fondo;
+    /**
+     *
+     * Variable que almacena la textura de
+     * nuestra ficha (balon)
+     * */
+    private Texture pelotaImagen;
     private OrthographicCamera camera;
     private ShapeRenderer shape;
     private SpriteBatch batch;
@@ -62,6 +68,11 @@ public class PantallaJuego implements Screen {
          * Se carga fondo de juego
          * */
         fondo = new Texture(Gdx.files.internal("images/fondo.jpg"));
+
+        /**
+         * Se carga imagen de nuestra ficha (balon)
+         * */
+        pelotaImagen = new Texture(Gdx.files.internal("images/ficha.png"));
 
         try {
             if (esHost) {
@@ -192,69 +203,104 @@ public class PantallaJuego implements Screen {
         }
     }
 
+
+
     @Override
     public void render(float delta) {
+
+        // -------- MOVIMIENTO --------
         if (miId != -1) {
-            float dx=0, dy=0;
-            if (up) dy += velocidad*delta;
-            if (down) dy -= velocidad*delta;
-            if (right) dx += velocidad*delta;
-            if (left) dx -= velocidad*delta;
-            if (dx!=0 || dy!=0) {
+            float dx = 0, dy = 0;
+
+            if (up) dy += velocidad * delta;
+            if (down) dy -= velocidad * delta;
+            if (right) dx += velocidad * delta;
+            if (left) dx -= velocidad * delta;
+
+            if (dx != 0 || dy != 0) {
                 Jugador yo = estadoLocal.getJugador(miId);
                 if (yo != null) {
                     float nx = yo.getX() + dx;
                     float ny = yo.getY() + dy;
+
                     nx = Math.max(20, Math.min(1004, nx));
                     ny = Math.max(20, Math.min(748, ny));
-                    yo.setX(nx); yo.setY(ny);
-                    Mensaje mover = new Mensaje(TipoMensaje.MOVER_JUGADOR, miId, 0, nx, ny, 0, 0, "");
+
+                    yo.setX(nx);
+                    yo.setY(ny);
+
+                    Mensaje mover = new Mensaje(
+                        TipoMensaje.MOVER_JUGADOR,
+                        miId, 0, nx, ny, 0, 0, ""
+                    );
                     cliente.enviarMensaje(mover);
                 }
             }
         }
-        Gdx.gl.glClearColor(0.2f,0.3f,0.4f,1);
+
+        // -------- LIMPIAR --------
+        Gdx.gl.glClearColor(0.2f, 0.3f, 0.4f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         camera.update();
+
+        // -------- 1. FONDO --------
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        /**
-         *
-         * Se dibuja el fondo
-         * Tamanio pantalla
-         * */
         batch.draw(fondo, 0, 0, 1024, 768);
         batch.end();
+
+        // -------- 2. SHAPES (JUGADORES + ZONAS) --------
         shape.setProjectionMatrix(camera.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
-        // Zonas (arcos) simples
-        shape.setColor(0.8f,0.8f,0.8f,0.5f);
-        for (int i=0;i<6;i++) {
-            float x = (i<3)?100:924;
-            float y = (i%3)*120+200;
-            shape.rect(x-40,y-60,80,120);
+
+        // Zonas
+        shape.setColor(0.8f, 0.8f, 0.8f, 0.5f);
+        for (int i = 0; i < 6; i++) {
+            float x = (i < 3) ? 100 : 924;
+            float y = (i % 3) * 120 + 200;
+            shape.rect(x - 40, y - 60, 80, 120);
         }
+
+        // Jugadores (CÍRCULOS)
         for (Jugador j : estadoLocal.getJugadores().values()) {
             float[] c = colores[j.getAvatarId() % colores.length];
             shape.setColor(c[0], c[1], c[2], 1);
             shape.circle(j.getX(), j.getY(), 20);
+
+            // indicador si tiene pelota
             if (j.isTienePelota()) {
-                shape.setColor(1,1,1,1);
-                shape.circle(j.getX()+15, j.getY()+15, 8);
+                shape.setColor(1, 1, 1, 1);
+                shape.circle(j.getX() + 15, j.getY() + 15, 8);
             }
         }
-        shape.setColor(1,0.8f,0,1);
-        for (Pelota p : estadoLocal.getPelotas().values()) {
-            shape.circle(p.getX(), p.getY(), 12);
-        }
+
         shape.end();
+
+        /**
+         * Se dibuja la pelota con la imagen asignada
+         * */
         batch.begin();
+        for (Pelota p : estadoLocal.getPelotas().values()) {
+            batch.draw(pelotaImagen,
+                /**
+                 * Medidas de nuestra pelota
+                 * */
+                p.getX() - 24,
+                p.getY() - 24,
+                48,
+                48
+            );
+        }
+
+        // -------- 4. UI --------
         font.draw(batch, "PUNTAJES:", 20, 740);
+
         int y = 710;
         for (Jugador j : estadoLocal.getJugadores().values()) {
             font.draw(batch, j.getNombre() + ": " + j.getPuntaje(), 30, y);
             y -= 30;
         }
+
         batch.end();
     }
 
