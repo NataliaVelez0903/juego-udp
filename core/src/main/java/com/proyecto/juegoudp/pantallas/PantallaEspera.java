@@ -30,6 +30,7 @@ public class PantallaEspera implements Screen {
     private int miId = -1;
     private int conectados;
     private int requeridos = 2;
+    private int tiempoPartidaSeg = 60;
     /** Evita cerrar red al pasar a partida reutilizando sockets. */
     private boolean pasandoAPartida;
 
@@ -84,9 +85,10 @@ public class PantallaEspera implements Screen {
     private void iniciarRed() {
         try {
             requeridos = Math.max(2, Math.min(juego.getConfiguracion().getNumeroJugadores(), Constantes.MAX_JUGADORES));
+            tiempoPartidaSeg = Math.max(30, (int) juego.getConfiguracion().getTiempoLimite());
 
             if (esHost) {
-                servidor = new ServidorUDP(requeridos);
+                servidor = new ServidorUDP(requeridos, tiempoPartidaSeg);
                 servidor.start();
                 cliente = new ClienteUDP("localhost");
                 String ipLocal;
@@ -96,7 +98,8 @@ public class PantallaEspera implements Screen {
                     ipLocal = "?";
                 }
                 labelAyuda.setText("Otros deben unirse con la IP: " + ipLocal + " (puerto UDP " + 5000 + ")\n"
-                        + "Objetivo: " + requeridos + " jugadores conectados.");
+                        + "Objetivo: " + requeridos + " jugadores conectados.\n"
+                        + "Tiempo de partida: " + tiempoPartidaSeg + " s.");
             } else {
                 if (this.ipServidor.isEmpty()) {
                     labelEstado.setText("Error: falta IP del host.");

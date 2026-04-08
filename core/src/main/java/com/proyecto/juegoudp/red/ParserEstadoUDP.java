@@ -17,9 +17,8 @@ public final class ParserEstadoUDP {
     }
 
     /**
-     * Formato actual: {@code STATE|seq|req|jugadores|pelotas} (5+ segmentos al partir por | con límite).
-     * Formato previo: {@code STATE|seq|jugadores|pelotas}
-     * Legado: {@code STATE|jugadores|pelotas}
+     * Formato actual: {@code STATE|seq|req|tiempo|jugadores|pelotas}.
+     * Compatibilidad: {@code STATE|seq|req|jugadores|pelotas}, {@code STATE|seq|jugadores|pelotas}, {@code STATE|jugadores|pelotas}.
      */
     public static int leerJugadoresRequeridos(String estado) {
         if (estado == null || !estado.startsWith("STATE|")) return 2;
@@ -37,9 +36,23 @@ public final class ParserEstadoUDP {
     public static String segmentoJugadores(String estado) {
         if (estado == null || !estado.startsWith("STATE|")) return "";
         String[] p = estado.split("\\|", 6);
-        if (p.length >= 5) return p[3];
+        if (p.length >= 6) return p[4];
+        if (p.length == 5) return p[3];
         if (p.length == 4) return p[2];
         if (p.length == 3) return p[1];
         return "";
+    }
+
+    public static int leerTiempoRestanteSegundos(String estado) {
+        if (estado == null || !estado.startsWith("STATE|")) return 0;
+        String[] p = estado.split("\\|", 6);
+        if (p.length >= 6) {
+            try {
+                return Integer.parseInt(p[3]);
+            } catch (NumberFormatException ignored) {
+                return 0;
+            }
+        }
+        return 0;
     }
 }

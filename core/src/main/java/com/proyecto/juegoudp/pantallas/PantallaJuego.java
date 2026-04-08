@@ -28,6 +28,8 @@ import com.proyecto.juegoudp.sonido.GestorSonidos;
 import com.proyecto.juegoudp.utilidades.Constantes;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 public class PantallaJuego implements Screen {
     private JuegoPrincipal juego;
@@ -69,6 +71,8 @@ public class PantallaJuego implements Screen {
     private float acumuladorEnvioJugador;
     private float acumuladorEnvioPelota;
     private long ultimoSeqEstado = -1;
+    private int tiempoRestanteSegundos = -1;
+    private boolean partidaFinalizada;
     private boolean up, down, left, right;
     private float[][] colores = {{1,0,0},{0,0,1},{0,1,0},{1,1,0},{1,0,1},{0,1,1}};
     private Pelota pelotaArrastrada = null;
@@ -276,7 +280,22 @@ public class PantallaJuego implements Screen {
 
         int idxJugadores;
         int idxPelotas;
-        if (partes.length >= 5) {
+        if (partes.length >= 6) {
+            try {
+                long seq = Long.parseLong(partes[1]);
+                if (seq <= ultimoSeqEstado) return;
+                ultimoSeqEstado = seq;
+            } catch (NumberFormatException e) {
+                return;
+            }
+            try {
+                tiempoRestanteSegundos = Integer.parseInt(partes[3]);
+            } catch (NumberFormatException e) {
+                tiempoRestanteSegundos = 0;
+            }
+            idxJugadores = 4;
+            idxPelotas = 5;
+        } else if (partes.length >= 5) {
             try {
                 long seq = Long.parseLong(partes[1]);
                 if (seq <= ultimoSeqEstado) return;
@@ -371,9 +390,13 @@ public class PantallaJuego implements Screen {
 
     @Override
     public void render(float delta) {
+        if (!partidaFinalizada && tiempoRestanteSegundos == 0) {
+            finalizarPartida();
+            return;
+        }
 
         // -------- MOVIMIENTO (envío limitado por UDP) --------
-        if (miId >= 0) {
+        if (!partidaFinalizada && miId >= 0) {
             float dx = 0, dy = 0;
 
             if (up) dy += velocidad * delta;
@@ -482,6 +505,11 @@ public class PantallaJuego implements Screen {
         }
 
         font.draw(batch, "PUNTAJES:", 20, 740);
+        if (tiempoRestanteSegundos >= 0) {
+            int min = tiempoRestanteSegundos / 60;
+            int seg = tiempoRestanteSegundos % 60;
+            font.draw(batch, String.format("TIEMPO: %02d:%02d", min, seg), 820, 740);
+        }
 
         int y = 710;
         for (Jugador j : estadoLocal.getJugadores().values()) {
@@ -490,6 +518,15 @@ public class PantallaJuego implements Screen {
         }
 
         batch.end();
+    }
+
+    private void finalizarPartida() {
+        partidaFinalizada = true;
+        ArrayList<Jugador> ranking = new ArrayList<>(estadoLocal.getJugadores().values());
+        ranking.sort(Comparator.comparingInt(Jugador::getPuntaje).reversed());
+        String ganador = ranking.isEmpty() ? "Sin ganador" : ranking.get(0).getNombre();
+        int puntaje = ranking.isEmpty() ? 0 : ranking.get(0).getPuntaje();
+        juego.setScreen(new PantallaFinal(juego, ganador, puntaje, ranking));
     }
 
     @Override public void resize(int w, int h) { camera.viewportWidth = w; camera.viewportHeight = h; camera.update(); }

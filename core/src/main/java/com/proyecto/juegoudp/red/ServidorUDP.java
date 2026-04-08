@@ -26,6 +26,8 @@ public class ServidorUDP extends Thread {
     private int siguienteIdJugador = 1;
     private long seqEstado = 0;
     private final int jugadoresRequeridos;
+    private final int duracionPartidaSegundos;
+    private long instanteInicioPartidaMs = -1;
 
     private static class ClienteInfo {
         InetAddress ip;
@@ -34,21 +36,26 @@ public class ServidorUDP extends Thread {
     }
 
     public ServidorUDP() throws Exception {
-        this(2);
+        this(2, 60);
     }
 
     /**
      * @param jugadoresRequeridosSolicitados cantidad de jugadores para pasar de lobby a partida (2..{@link Constantes#MAX_JUGADORES})
      */
     public ServidorUDP(int jugadoresRequeridosSolicitados) throws Exception {
+        this(jugadoresRequeridosSolicitados, 60);
+    }
+
+    public ServidorUDP(int jugadoresRequeridosSolicitados, int duracionPartidaSegundosSolicitada) throws Exception {
         jugadoresRequeridos = Math.max(2, Math.min(jugadoresRequeridosSolicitados, Constantes.MAX_JUGADORES));
+        duracionPartidaSegundos = Math.max(30, duracionPartidaSegundosSolicitada);
         socket = new DatagramSocket(PUERTO);
         socket.setSoTimeout(100);
         clientes = new ConcurrentHashMap<>();
         jugadorPorCliente = new ConcurrentHashMap<>();
         estado = new EstadoJuego();
         ejecutando = true;
-        System.out.println("[Servidor] Iniciado en puerto " + PUERTO + " (objetivo lobby: " + jugadoresRequeridos + " jugadores)");
+        System.out.println("[Servidor] Iniciado en puerto " + PUERTO + " (objetivo lobby: " + jugadoresRequeridos + " jugadores, tiempo: " + duracionPartidaSegundos + "s)");
         for (int i = 0; i < 6; i++) {
             float x = 512 + (i % 3 - 1) * 100;
             float y = 384 + (i / 3 - 1) * 80;
@@ -107,6 +114,8 @@ public class ServidorUDP extends Thread {
                     System.out.println("[Servidor] Nuevo cliente: " + clave);
                 }
 
+                boolean partidaTerminada = tiempoRestanteSegundos() <= 0 && instanteInicioPartidaMs > 0;
+
                 switch (msg.getTipo()) {
                     case UNIRSE: {
                         Integer idPrevio = jugadorPorCliente.get(clave);
@@ -146,11 +155,13 @@ public class ServidorUDP extends Thread {
                         break;
                     }
                     case MOVER_JUGADOR: {
+                        if (partidaTerminada) break;
                         Jugador j = estado.getJugador(msg.getIdJugador());
                         if (j != null) { j.setX(msg.getX()); j.setY(msg.getY()); }
                         break;
                     }
                     case TOMAR_PELOTA: {
+                        if (partidaTerminada) break;
                         Pelota pTomar = estado.getPelota(msg.getIdObjeto());
                         if (pTomar != null && pTomar.getIdJugador() == -1) {
                             pTomar.setIdJugador(msg.getIdJugador());
@@ -160,6 +171,7 @@ public class ServidorUDP extends Thread {
                         break;
                     }
                     case MOVER_PELOTA: {
+                        if (partidaTerminada) break;
                         Pelota pMover = estado.getPelota(msg.getIdObjeto());
                         if (pMover != null && pMover.getIdJugador() == msg.getIdJugador()) {
                             pMover.setX(msg.getX()); pMover.setY(msg.getY());
@@ -167,6 +179,7 @@ public class ServidorUDP extends Thread {
                         break;
                     }
                     case SOLTAR_PELOTA: {
+                        if (partidaTerminada) break;
                         Pelota pSoltar = estado.getPelota(msg.getIdObjeto());
                         if (pSoltar != null && pSoltar.getIdJugador() == msg.getIdJugador()) {
                             pSoltar.setIdJugador(-1);
@@ -180,19 +193,26 @@ public class ServidorUDP extends Thread {
                         break;
                 }
 
-                for (Pelota p : estado.getPelotas().values()) {
-                    if (p.getIdJugador() != -1) continue;
-                    for (Zona zona : estado.getZonas().values()) {
-                        if (zona.contienePunto(p.getX(), p.getY())) {
-                            Jugador jugador = estado.getJugador(zona.getIdJugador());
-                            if (jugador != null) {
-                                jugador.sumarPuntaje(10);
-                                System.out.println("⚽ GOL de " + jugador.getNombre() + "!");
+                if (instanteInicioPartidaMs < 0 && estado.getJugadores().size() >= jugadoresRequeridos) {
+                    instanteInicioPartidaMs = System.currentTimeMillis();
+                    System.out.println("[Servidor] Partida iniciada. Duracion: " + duracionPartidaSegundos + "s");
+                }
+
+                if (!partidaTerminada) {
+                    for (Pelota p : estado.getPelotas().values()) {
+                        if (p.getIdJugador() != -1) continue;
+                        for (Zona zona : estado.getZonas().values()) {
+                            if (zona.contienePunto(p.getX(), p.getY())) {
+                                Jugador jugador = estado.getJugador(zona.getIdJugador());
+                                if (jugador != null) {
+                                    jugador.sumarPuntaje(10);
+                                    System.out.println("⚽ GOL de " + jugador.getNombre() + "!");
+                                }
+                                p.setX(512); p.setY(384);
+                                p.setVx(0); p.setVy(0);
+                                p.setIdJugador(-1);
+                                break;
                             }
-                            p.setX(512); p.setY(384);
-                            p.setVx(0); p.setVy(0);
-                            p.setIdJugador(-1);
-                            break;
                         }
                     }
                 }
@@ -228,6 +248,7 @@ public class ServidorUDP extends Thread {
         StringBuilder sb = new StringBuilder("STATE|");
         sb.append(++seqEstado).append("|");
         sb.append(jugadoresRequeridos).append("|");
+        sb.append(tiempoRestanteSegundos()).append("|");
         for (Jugador j : estado.getJugadores().values()) {
             String nomEnc = URLEncoder.encode(j.getNombre(), StandardCharsets.UTF_8);
             sb.append(j.getId()).append(",")
@@ -248,6 +269,13 @@ public class ServidorUDP extends Thread {
                     .append(p.getIdJugador()).append(";");
         }
         return sb.toString();
+    }
+
+    private int tiempoRestanteSegundos() {
+        if (instanteInicioPartidaMs < 0) return duracionPartidaSegundos;
+        long transcurridoMs = System.currentTimeMillis() - instanteInicioPartidaMs;
+        int restantes = duracionPartidaSegundos - (int) (transcurridoMs / 1000L);
+        return Math.max(0, restantes);
     }
 
     public void detener() { ejecutando = false; interrupt(); }
