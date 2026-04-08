@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
 import com.proyecto.juegoudp.modelo.EstadoJuego;
 import com.proyecto.juegoudp.modelo.Pelota;
-import com.proyecto.juegoudp.red.ClienteUdp;
+import com.proyecto.juegoudp.red.ClienteUDP;
 import com.proyecto.juegoudp.red.Mensaje;
 import com.proyecto.juegoudp.red.TipoMensaje;
 
@@ -53,13 +53,13 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
 
     private final OrthographicCamera camara;
     private final EstadoJuego estadoLocal;
-    private final ClienteUdp cliente;
+    private final ClienteUDP cliente;
     private final EscuchaEntradaPartida escucha;
 
     public ControladorEntradaJuego(
             OrthographicCamera camara,
             EstadoJuego estadoLocal,
-            ClienteUdp cliente,
+            ClienteUDP cliente,
             EscuchaEntradaPartida escucha
     ) {
         this.camara = camara;

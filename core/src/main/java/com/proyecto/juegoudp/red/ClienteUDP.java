@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 /**
  * Cliente UDP: envía mensajes al servidor y recibe estado o mensajes en un hilo de escucha.
  */
-public class ClienteUdp {
+public class ClienteUDP {
     private DatagramSocket conexionDatagrama;
     private InetAddress direccionServidor;
     private int puertoServidor = Constantes.PUERTO_UDP;
@@ -18,7 +18,7 @@ public class ClienteUdp {
     private Consumer<String> alRecibirEstado;
     private Consumer<Mensaje> alRecibirMensaje;
 
-    public ClienteUdp(String direccionIpServidor) throws Exception {
+    public ClienteUDP(String direccionIpServidor) throws Exception {
         conexionDatagrama = new DatagramSocket();
         direccionServidor = InetAddress.getByName(direccionIpServidor);
         activo = true;

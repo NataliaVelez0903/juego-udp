@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Servidor autoritativo UDP: recibe mensajes, aplica reglas y difunde el estado serializado.
  */
-public class ServidorUdp extends Thread {
+public class ServidorUDP extends Thread {
     private DatagramSocket conexionDatagrama;
     private final Map<String, ClienteInfo> clientesPorClave;
     /** Evita duplicar jugadores por {@code UNIRSE} repetido (clave ip:puerto → id). */
@@ -61,15 +61,15 @@ public class ServidorUdp extends Thread {
         void enviarA(InetAddress ip, int puerto, Mensaje mensaje);
     }
 
-    public ServidorUdp() throws Exception {
+    public ServidorUDP() throws Exception {
         this(2, 60);
     }
 
-    public ServidorUdp(int jugadoresRequeridosSolicitados) throws Exception {
+    public ServidorUDP(int jugadoresRequeridosSolicitados) throws Exception {
         this(jugadoresRequeridosSolicitados, 60);
     }
 
-    public ServidorUdp(int jugadoresRequeridosSolicitados, int duracionPartidaSegundosSolicitada) throws Exception {
+    public ServidorUDP(int jugadoresRequeridosSolicitados, int duracionPartidaSegundosSolicitada) throws Exception {
         jugadoresRequeridos = Math.max(2, Math.min(jugadoresRequeridosSolicitados, Constantes.MAX_JUGADORES));
         duracionPartidaSegundos = Math.max(30, duracionPartidaSegundosSolicitada);
         conexionDatagrama = new DatagramSocket(Constantes.PUERTO_UDP);
