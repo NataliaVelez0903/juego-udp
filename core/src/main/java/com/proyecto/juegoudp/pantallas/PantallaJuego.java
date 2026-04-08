@@ -106,7 +106,8 @@ public class PantallaJuego implements Screen {
                             gestorEstado,
                             datosArrastre,
                             estadoTeclasMovimiento,
-                            () -> partidaFinalizada));
+                            () -> partidaFinalizada,
+                            () -> gestorSonidos.alternarSilencio()));
 
             Gdx.input.setInputProcessor(controladorEntrada);
         } catch (Exception e) {

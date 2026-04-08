@@ -46,6 +46,9 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
         long obtenerInstanteUltimoArrastre();
 
         void limpiarArrastrePelota();
+
+        /** Tecla M: alterna silencio global (música y efectos). */
+        void alternarSilencioAudio();
     }
 
     private final OrthographicCamera camara;
@@ -69,6 +72,10 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
     public boolean keyDown(int codigoTecla) {
         if (escucha.partidaEstaFinalizada()) {
             return false;
+        }
+        if (codigoTecla == Keys.M) {
+            escucha.alternarSilencioAudio();
+            return true;
         }
         int idJugador = escucha.obtenerIdJugador();
         if (idJugador < 0) {

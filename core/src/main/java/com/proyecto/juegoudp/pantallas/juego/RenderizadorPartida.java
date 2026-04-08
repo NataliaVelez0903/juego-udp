@@ -96,10 +96,10 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         }
         fuente.draw(loteSprites, "ACCIONES: WASD mover | ratón: pelota suelta", 20, 80);
 
-        if (gestorSonidos != null && !gestorSonidos.isMusicaSonando()) {
-            fuente.draw(loteSprites, "MUSICA: OFF (Presiona M para activar)", 20, 50);
+        if (gestorSonidos != null && gestorSonidos.isSilenciado()) {
+            fuente.draw(loteSprites, "SONIDO: silenciado (M activar)", 20, 50);
         } else {
-            fuente.draw(loteSprites, "MUSICA: ON (Presiona M para desactivar)", 20, 50);
+            fuente.draw(loteSprites, "SONIDO: activo (M silenciar)", 20, 50);
         }
 
         fuente.draw(loteSprites, "PUNTAJES:", 20, 740);

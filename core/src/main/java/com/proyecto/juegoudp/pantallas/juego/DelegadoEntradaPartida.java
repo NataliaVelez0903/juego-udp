@@ -11,17 +11,20 @@ public final class DelegadoEntradaPartida implements ControladorEntradaJuego.Esc
     private final DatosArrastrePelota datosArrastre;
     private final boolean[] movimientoTeclas;
     private final BooleanSupplier partidaFinalizada;
+    private final Runnable accionAlternarSilencioAudio;
 
     public DelegadoEntradaPartida(
             GestorEstadoRedPartida gestorEstado,
             DatosArrastrePelota datosArrastre,
             boolean[] movimientoTeclas,
-            BooleanSupplier partidaFinalizada
+            BooleanSupplier partidaFinalizada,
+            Runnable accionAlternarSilencioAudio
     ) {
         this.gestorEstado = gestorEstado;
         this.datosArrastre = datosArrastre;
         this.movimientoTeclas = movimientoTeclas;
         this.partidaFinalizada = partidaFinalizada;
+        this.accionAlternarSilencioAudio = accionAlternarSilencioAudio != null ? accionAlternarSilencioAudio : () -> {};
     }
 
     @Override
@@ -92,5 +95,10 @@ public final class DelegadoEntradaPartida implements ControladorEntradaJuego.Esc
     @Override
     public void limpiarArrastrePelota() {
         datosArrastre.limpiarArrastre();
+    }
+
+    @Override
+    public void alternarSilencioAudio() {
+        accionAlternarSilencioAudio.run();
     }
 }

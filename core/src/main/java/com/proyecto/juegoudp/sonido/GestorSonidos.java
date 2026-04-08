@@ -14,9 +14,11 @@ public class GestorSonidos {
     private Music musicaFondo;
     private boolean sonidosDisponibles = true;
     private boolean musicaDisponible = true;
-    private float volumenEfectos = 1.0f;  // Volumen máximo para efectos
-    private float volumenMusica = 0.3f;    // Volumen más bajo para la música de fondo (para que se escuche el gol)
+    private float volumenEfectos = 1.0f;
+    private float volumenMusica = 0.3f;
     private boolean musicaActivada = true;
+    /** Si es {@code true}, música y efectos no se oyen (volumen de salida 0). */
+    private boolean silenciado = false;
 
     private GestorSonidos() {
         cargarSonidos();
@@ -63,7 +65,7 @@ public class GestorSonidos {
             if (archivoMusica.exists()) {
                 musicaFondo = Gdx.audio.newMusic(archivoMusica);
                 musicaFondo.setLooping(true);
-                musicaFondo.setVolume(volumenMusica);
+                musicaFondo.setVolume(volumenMusicaSalida());
                 System.out.println("[GestorSonidos] Música de fondo cargada correctamente");
             } else {
                 System.err.println("[GestorSonidos] No se encontró el archivo: sonidos/sonidofondo.wav");
@@ -79,13 +81,15 @@ public class GestorSonidos {
      * Reproduce el sonido de gol con volumen alto
      */
     public void reproducirGol() {
+        float vol = volumenEfectosSalida();
+        if (vol <= 0f) {
+            return;
+        }
         if (sonidosDisponibles && sonidoGol != null) {
             try {
-                // Reproducir con volumen máximo (1.0f) y sin pan (0.0f)
-                long id = sonidoGol.play(volumenEfectos);
-                // También podemos establecer el volumen específico para esta reproducción
-                sonidoGol.setVolume(id, volumenEfectos);
-                System.out.println("[GestorSonidos] Reproduciendo sonido de gol con volumen: " + volumenEfectos);
+                long id = sonidoGol.play(vol);
+                sonidoGol.setVolume(id, vol);
+                System.out.println("[GestorSonidos] Reproduciendo sonido de gol con volumen: " + vol);
             } catch (Exception e) {
                 System.err.println("[GestorSonidos] Error al reproducir sonido: " + e.getMessage());
             }
@@ -99,9 +103,12 @@ public class GestorSonidos {
      * @param volumen Valor entre 0.0 y 1.0
      */
     public void reproducirGol(float volumen) {
+        float vol = Math.max(0f, Math.min(3f, volumen)) * (silenciado ? 0f : 1f);
+        if (vol <= 0f) {
+            return;
+        }
         if (sonidosDisponibles && sonidoGol != null) {
             try {
-                float vol = Math.max(0f, Math.min(3f, volumen));
                 long id = sonidoGol.play(vol);
                 sonidoGol.setVolume(id, vol);
                 System.out.println("[GestorSonidos] Reproduciendo sonido de gol con volumen personalizado: " + vol);
@@ -118,9 +125,9 @@ public class GestorSonidos {
         if (musicaActivada && musicaDisponible && musicaFondo != null) {
             try {
                 if (!musicaFondo.isPlaying()) {
-                    musicaFondo.setVolume(volumenMusica);
+                    musicaFondo.setVolume(volumenMusicaSalida());
                     musicaFondo.play();
-                    System.out.println("[GestorSonidos] Música de fondo iniciada con volumen: " + volumenMusica);
+                    System.out.println("[GestorSonidos] Música de fondo iniciada con volumen: " + volumenMusicaSalida());
                 }
             } catch (Exception e) {
                 System.err.println("[GestorSonidos] Error al iniciar música: " + e.getMessage());
@@ -163,6 +170,7 @@ public class GestorSonidos {
         if (musicaActivada && musicaDisponible && musicaFondo != null) {
             try {
                 if (!musicaFondo.isPlaying()) {
+                    musicaFondo.setVolume(volumenMusicaSalida());
                     musicaFondo.play();
                     System.out.println("[GestorSonidos] Música de fondo reanudada");
                 }
@@ -177,10 +185,8 @@ public class GestorSonidos {
      */
     public void setVolumenMusica(float volumen) {
         this.volumenMusica = Math.max(0f, Math.min(1f, volumen));
-        if (musicaFondo != null) {
-            musicaFondo.setVolume(this.volumenMusica);
-            System.out.println("[GestorSonidos] Volumen de música ajustado a: " + this.volumenMusica);
-        }
+        aplicarVolumenMusicaEnReproductor();
+        System.out.println("[GestorSonidos] Volumen de música (preferencia) ajustado a: " + this.volumenMusica);
     }
 
     /**
@@ -189,6 +195,41 @@ public class GestorSonidos {
     public void setVolumenEfectos(float volumen) {
         this.volumenEfectos = Math.max(0f, Math.min(1f, volumen));
         System.out.println("[GestorSonidos] Volumen de efectos ajustado a: " + this.volumenEfectos);
+    }
+
+    /** Volumen real de la música según silencio y si la música está permitida. */
+    private float volumenMusicaSalida() {
+        if (!musicaActivada || silenciado) {
+            return 0f;
+        }
+        return volumenMusica;
+    }
+
+    /** Volumen real de efectos (0 si está silenciado). */
+    private float volumenEfectosSalida() {
+        return silenciado ? 0f : volumenEfectos;
+    }
+
+    private void aplicarVolumenMusicaEnReproductor() {
+        if (musicaFondo != null) {
+            musicaFondo.setVolume(volumenMusicaSalida());
+        }
+    }
+
+    /**
+     * Silencia o restaura todo el audio (música de fondo y efectos).
+     */
+    public void setSilenciado(boolean silenciado) {
+        this.silenciado = silenciado;
+        aplicarVolumenMusicaEnReproductor();
+    }
+
+    public void alternarSilencio() {
+        setSilenciado(!silenciado);
+    }
+
+    public boolean isSilenciado() {
+        return silenciado;
     }
 
     /**
