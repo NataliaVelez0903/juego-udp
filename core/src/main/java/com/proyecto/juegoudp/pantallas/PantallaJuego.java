@@ -18,8 +18,8 @@ import com.proyecto.juegoudp.pantallas.juego.MovimientoJugadorLocal;
 import com.proyecto.juegoudp.pantallas.juego.NavegacionFinPartida;
 import com.proyecto.juegoudp.pantallas.juego.ProveedorInterfazPartidaGestorEstado;
 import com.proyecto.juegoudp.pantallas.juego.RenderizadorPartida;
-import com.proyecto.juegoudp.red.ClienteUdp;
-import com.proyecto.juegoudp.red.ServidorUdp;
+import com.proyecto.juegoudp.red.ClienteUDP;
+import com.proyecto.juegoudp.red.ServidorUDP;
 import com.proyecto.juegoudp.sonido.GestorSonidos;
 
 /**
@@ -39,8 +39,8 @@ public class PantallaJuego implements Screen {
     private final boolean[] estadoTeclasMovimiento = new boolean[4];
     private final float velocidadMovimiento = 300f;
 
-    private ClienteUdp cliente;
-    private ServidorUdp servidor;
+    private ClienteUDP cliente;
+    private ServidorUDP servidor;
     private IRenderizadorPartida renderizador;
     private ControladorEntradaJuego controladorEntrada;
     private MovimientoJugadorLocal movimientoLocal;
@@ -57,8 +57,8 @@ public class PantallaJuego implements Screen {
             String direccionIpServidor,
             String nombre,
             int idAvatar,
-            ServidorUdp servidorExistente,
-            ClienteUdp clienteExistente
+            ServidorUDP servidorExistente,
+            ClienteUDP clienteExistente
     ) {
         this.juego = juego;
         this.estadoLocal = new EstadoJuego();

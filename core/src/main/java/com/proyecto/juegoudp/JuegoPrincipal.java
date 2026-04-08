@@ -5,8 +5,8 @@ import com.proyecto.juegoudp.modelo.ConfiguracionPartida;
 import com.proyecto.juegoudp.pantallas.PantallaEspera;
 import com.proyecto.juegoudp.pantallas.PantallaJuego;
 import com.proyecto.juegoudp.pantallas.PantallaMenu;
-import com.proyecto.juegoudp.red.ClienteUdp;
-import com.proyecto.juegoudp.red.ServidorUdp;
+import com.proyecto.juegoudp.red.ClienteUDP;
+import com.proyecto.juegoudp.red.ServidorUDP;
 
 /**
  * Punto de entrada del juego libGDX: configuración global y transición entre pantallas.
@@ -56,8 +56,8 @@ public class JuegoPrincipal extends Game {
     public void iniciarJuegoDesdeEspera(
             boolean esAnfitrion,
             String direccionIpServidor,
-            ServidorUdp servidor,
-            ClienteUdp cliente
+            ServidorUDP servidor,
+            ClienteUDP cliente
     ) {
         setScreen(new com.proyecto.juegoudp.pantallas.PantallaJuego(this, esAnfitrion, direccionIpServidor,
                 nombreJugador, avatarSeleccionado, servidor, cliente));
