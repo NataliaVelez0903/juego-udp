@@ -3,10 +3,7 @@ package com.proyecto.juegoudp.pantallas.juego;
 import com.badlogic.gdx.Gdx;
 import com.proyecto.juegoudp.red.ClienteUDP;
 import com.proyecto.juegoudp.red.Mensaje;
-<<<<<<< HEAD
-=======
 import com.proyecto.juegoudp.red.ServidorUDP;
->>>>>>> 32857898659ebd838fe83e4507b0e8a04a86503c
 import com.proyecto.juegoudp.red.TipoMensaje;
 
 /**

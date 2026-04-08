@@ -18,12 +18,8 @@ import com.proyecto.juegoudp.pantallas.juego.MovimientoJugadorLocal;
 import com.proyecto.juegoudp.pantallas.juego.NavegacionFinPartida;
 import com.proyecto.juegoudp.pantallas.juego.ProveedorInterfazPartidaGestorEstado;
 import com.proyecto.juegoudp.pantallas.juego.RenderizadorPartida;
-<<<<<<< HEAD
-import com.proyecto.juegoudp.red.ClienteUdp;
-=======
 import com.proyecto.juegoudp.red.ClienteUDP;
 import com.proyecto.juegoudp.red.ServidorUDP;
->>>>>>> 32857898659ebd838fe83e4507b0e8a04a86503c
 import com.proyecto.juegoudp.sonido.GestorSonidos;
 
 /**
