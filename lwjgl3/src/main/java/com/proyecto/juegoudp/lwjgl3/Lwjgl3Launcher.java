@@ -4,6 +4,9 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.proyecto.juegoudp.JuegoPrincipal;
 
+/**
+ * Punto de entrada del escritorio: arranca libGDX con {@link JuegoPrincipal} en ventana 1024×768.
+ */
 public class Lwjgl3Launcher {
     public static void main(String[] args) {
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();

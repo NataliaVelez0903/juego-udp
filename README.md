@@ -1,110 +1,107 @@
-# Juego Multijugador Sockets UDP
+# Peloteros — juego multijugador con UDP
 
-## 📌 Descripción
-Este proyecto consiste en el desarrollo de un juego multijugador en tiempo real, donde varios jugadores interactúan desde diferentes computadores.
+Juego en tiempo real para **2 a 4 jugadores**. Un participante hace de **anfitrión** (servidor UDP autoritativo); el resto se conectan como **clientes**. La partida tiene **duración configurable**, **sala de espera** hasta completar jugadores y **pantalla de resultados** al terminar el tiempo.
 
-La comunicación entre jugadores se realiza mediante sockets UDP, permitiendo la sincronización de acciones y eventos en tiempo real.
-
-El juego está basado en la captura de objetos, donde cada jugador debe arrastrar objetos hacia su zona para acumular puntos.
+**Alcance:** mecánica centrada en **mover**, **arrastrar pelotas sueltas** y **meter gol** en la zona propia. **No** hay power-ups, objetos recolectables ni “zona caliente” con doble puntaje.
 
 ---
 
-## Objetivo del juego
-Capturar la mayor cantidad de objetos llevándolos a la zona del jugador antes de que el tiempo se agote.
+## Requisitos
+
+- **JDK 21**
+- **Gradle** (wrapper incluido: `gradlew` / `gradlew.bat`)
 
 ---
 
-## Reglas del juego
-1. Cada jugador puede mover objetos utilizando el mouse
-2. Un objeto solo puede ser controlada por un jugador a la vez
-3. Cuando un objeto entra a la zona o base de un jugador, se suma un punto
-4. Los objetos pueden colisionar con obstáculos dentro del tablero
-5. La partida tiene una duración limitada de tiempo
-6. Gana el jugador con mayor puntaje al finalizar la partida
+## Cómo ejecutar
 
+En la raíz del proyecto:
 
----
+```bash
+./gradlew :lwjgl3:run
+```
 
-## Jugadores
-- Mínimo: 2 jugadores
-- Máximo: 4 jugadores
+En Windows (PowerShell o CMD):
 
-Cada jugador ejecuta su propia instancia del juego.
+```bat
+gradlew.bat :lwjgl3:run
+```
 
----
+Alternativa: abrir el proyecto en IntelliJ IDEA / Android Studio y ejecutar la clase  
+`lwjgl3/src/main/java/com/proyecto/juegoudp/lwjgl3/Lwjgl3Launcher.java`.
 
-## Comunicación (UDP)
-El juego utiliza comunicación mediante sockets UDP.
-
-- Un jugador actúa como **host** (el que crea la partida)
-- Los demás como **clientes** (los que se unen a la partida)
-- Se envían eventos como:
-    - movimiento de objetos
-    - puntajes
-    - acciones del jugador
-- Todo se sincroniza en tiempo real
+**Puerto UDP:** `5000` (definido en `Constantes.PUERTO_UDP`). El anfitrión debe indicar su **IP de red local** a quienes se unen.
 
 ---
 
-## Tecnologías utilizadas
-- Java 21
-- libGDX
-- UDP (DatagramSocket)
-- Gradle
-- Git & GitHub
+## Cómo jugar (resumen)
+
+| Acción | Entrada |
+|--------|---------|
+| Mover al jugador | **W A S D** |
+| Coger / arrastrar / soltar pelota libre | **Ratón** (clic y arrastre) |
+
+- Mete la pelota en **tu zona de gol** (marcadores a los lados del campo) para sumar puntos.
+- La partida termina cuando **se agota el tiempo** configurado por el anfitrión.
+- Gana quien tenga **más puntaje** al final.
 
 ---
 
-## Arquitectura del proyecto
+## Arquitectura del código
 
-El sistema está organizado en módulos:
+El proyecto está organizado por **capas** (presentación → dominio → infraestructura):
 
-- pantallas (pantallas del juego, solo lo visual)
-  - PantallaJuego-----------|
-  - PantallaMenu-------------|No manejan lógica pesada, solo dibuja y cordina
-  - PantallaFinal--------|
-- modelo (representa el estado del juego)
-  - EstadoJuego
-  - Ficha
-  - Jugador
-  - Zona
----
+```
+com.proyecto.juegoudp
+├── pantallas/          # libGDX: menú, espera, partida, final
+│   ├── juego/          # Entrada, render, movimiento local, gestor de estado de red
+│   ├── espera/         # Conexión de sala (ConexionSalaUdp, EscuchaSala)
+│   ├── menu/           # Validación del menú (ValidacionMenu)
+│   └── ui/             # FabricaSkinBasico, IFabricaSkin
+├── modelo/             # EstadoJuego, Jugador, Pelota, Zona, ConfiguracionPartida (sin sockets)
+├── red/                # ClienteUdp, ServidorUdp, Mensaje, serialización y análisis de STATE
+├── sonido/             # GestorSonidos (singleton)
+└── utilidades/         # Constantes (puerto, máx. jugadores, frecuencia de envío)
+```
 
-## Patrones de diseño
+**Flujo de red:** todos los jugadores (incluido el anfitrión) usan `ClienteUdp`. Solo el anfitrión ejecuta `ServidorUdp`, que difunde instantáneas `STATE|...` y procesa mensajes (`UNIRSE`, `MOVER_JUGADOR`, pelota, etc.).
 
-- ...
-
----
-
-## Principios SOLID
-
-- Separación de responsabilidades
-- Código modular
-- Uso de abstracciones
-- Bajo acoplamiento
+**Patrones destacados:** delegación en pantalla de partida (`ControladorEntradaJuego`, `RenderizadorPartida`, `GestorEstadoRedPartida`), factoría de apariencia (`IFabricaSkin`), procesador y serializador de estado en el servidor, callbacks hacia la UI en la sala de espera.
 
 ---
 
-## Cómo ejecutar el proyecto
+## Estructura de módulos Gradle
 
-1. Clonar el repositorio:
-"git clone https://github.com/NataliaVelez0903/juego-udp.git"
-2. Abrir el proyecto en Intellij o NetBeans
-3. Esperar a que Gradle descargue las dependencias
-4. Ejecutar
-"Lwjgl3Launcher.java"
+| Módulo | Rol |
+|--------|-----|
+| `core` | Lógica, modelo, red, pantallas compartidas |
+| `lwjgl3` | Escritorio: launcher y empaquetado de assets |
 
-## Flujo de trabajo 
-- main -> Versión estable 
-- develop -> Integración
-- feature/* -> desarrollo de funcionalidades 
+---
 
-## Estructura del repositorio 
-- ...
+## Documentación adicional
+
+- `DOCUMENTACION_ENTREGA.md`: base para entrega académica o informe en PDF.
+
+---
+
+## Git (flujo sugerido)
+
+- `main` — versión estable  
+- `develop` — integración  
+- `feature/*` — desarrollo por funcionalidad  
+
 ---
 
 ## Integrantes
-- Sebastian Villaneda Gutierrez
-- Natalia Velez Orjuela
-- Juan José Giraldo Tabares 
-- Luis Carlos Gallego Morales
+
+- Sebastián Villaneda Gutiérrez  
+- Natalia Vélez Orjuela  
+- Juan José Giraldo Tabares  
+- Luis Carlos Gallego Morales  
+
+---
+
+## Licencia
+
+Según lo definido por el equipo / la institución.

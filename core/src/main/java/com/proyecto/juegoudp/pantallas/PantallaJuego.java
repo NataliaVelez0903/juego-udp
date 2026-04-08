@@ -2,242 +2,185 @@ package com.proyecto.juegoudp.pantallas;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.math.Vector3;
 import com.proyecto.juegoudp.JuegoPrincipal;
-import com.proyecto.juegoudp.red.ClienteUDP;
-import com.proyecto.juegoudp.red.Mensaje;
-import com.proyecto.juegoudp.red.ServidorUDP;
-import com.proyecto.juegoudp.red.TipoMensaje;
-import com.proyecto.juegoudp.modelo.Jugador;
-import com.proyecto.juegoudp.modelo.Pelota;
 import com.proyecto.juegoudp.modelo.EstadoJuego;
+import com.proyecto.juegoudp.pantallas.juego.ControladorEntradaJuego;
+import com.proyecto.juegoudp.pantallas.juego.DatosArrastrePelota;
+import com.proyecto.juegoudp.pantallas.juego.DelegadoEntradaPartida;
+import com.proyecto.juegoudp.pantallas.juego.GestorEstadoRedPartida;
+import com.proyecto.juegoudp.pantallas.juego.IRenderizadorPartida;
+import com.proyecto.juegoudp.pantallas.juego.InicializadorRedPartida;
+import com.proyecto.juegoudp.pantallas.juego.MovimientoJugadorLocal;
+import com.proyecto.juegoudp.pantallas.juego.NavegacionFinPartida;
+import com.proyecto.juegoudp.pantallas.juego.ProveedorInterfazPartidaGestorEstado;
+import com.proyecto.juegoudp.pantallas.juego.RenderizadorPartida;
+import com.proyecto.juegoudp.red.ClienteUdp;
+import com.proyecto.juegoudp.red.ServidorUdp;
+import com.proyecto.juegoudp.sonido.GestorSonidos;
 
+/**
+ * Orquesta el ciclo de vida de la pantalla de partida; delega red, estado, entrada, dibujo y movimiento.
+ */
 public class PantallaJuego implements Screen {
-    private JuegoPrincipal juego;
-    private OrthographicCamera camera;
-    private ShapeRenderer shape;
-    private SpriteBatch batch;
-    private BitmapFont font;
-    private ClienteUDP cliente;
-    private ServidorUDP servidor;
-    private EstadoJuego estadoLocal;
-    private int miId = -1;
-    private String miNombre;
-    private boolean esHost;
-    private float velocidad = 300f;
-    private boolean up, down, left, right;
-    private float[][] colores = {{1,0,0},{0,0,1},{0,1,0},{1,1,0},{1,0,1},{0,1,1}};
-    private Pelota pelotaArrastrada = null;
-    private float offsetX, offsetY;
+    private final JuegoPrincipal juego;
+    private final GestorSonidos gestorSonidos;
+    private final OrthographicCamera camara;
+    private final ShapeRenderer dibujadorFormas;
+    private final SpriteBatch loteSprites;
+    private final BitmapFont fuente;
 
-    public PantallaJuego(JuegoPrincipal juego, boolean esHost, String ipServidor, String nombre, int avatarId) {
+    private final EstadoJuego estadoLocal;
+    private final GestorEstadoRedPartida gestorEstado;
+    private final DatosArrastrePelota datosArrastre = new DatosArrastrePelota();
+    private final boolean[] estadoTeclasMovimiento = new boolean[4];
+    private final float velocidadMovimiento = 300f;
+
+    private ClienteUdp cliente;
+    private ServidorUdp servidor;
+    private IRenderizadorPartida renderizador;
+    private ControladorEntradaJuego controladorEntrada;
+    private MovimientoJugadorLocal movimientoLocal;
+
+    private boolean partidaFinalizada;
+
+    public PantallaJuego(JuegoPrincipal juego, boolean esAnfitrion, String direccionIpServidor, String nombre, int idAvatar) {
+        this(juego, esAnfitrion, direccionIpServidor, nombre, idAvatar, null, null);
+    }
+
+    public PantallaJuego(
+            JuegoPrincipal juego,
+            boolean esAnfitrion,
+            String direccionIpServidor,
+            String nombre,
+            int idAvatar,
+            ServidorUdp servidorExistente,
+            ClienteUdp clienteExistente
+    ) {
         this.juego = juego;
-        this.esHost = esHost;
-        this.miNombre = nombre;
         this.estadoLocal = new EstadoJuego();
-        this.shape = new ShapeRenderer();
-        this.batch = new SpriteBatch();
-        this.font = new BitmapFont();
-        this.camera = new OrthographicCamera(1024, 768);
-        camera.setToOrtho(false);
+        this.gestorEstado = new GestorEstadoRedPartida(estadoLocal, GestorSonidos.getInstancia(), nombre);
+
+        this.dibujadorFormas = new ShapeRenderer();
+        this.loteSprites = new SpriteBatch();
+        this.fuente = new BitmapFont();
+        this.camara = new OrthographicCamera(1024, 768);
+        camara.setToOrtho(false);
+
+        this.gestorSonidos = GestorSonidos.getInstancia();
+        gestorSonidos.iniciarMusicaFondo();
 
         try {
-            if (esHost) {
-                System.out.println("[PantallaJuego] Iniciando servidor (host)...");
-                servidor = new ServidorUDP();
-                servidor.start();
-                Thread.sleep(1000);
-                cliente = new ClienteUDP("localhost");
-            } else {
-                System.out.println("[PantallaJuego] Conectando a servidor remoto: " + ipServidor);
-                cliente = new ClienteUDP(ipServidor);
-            }
-
-            cliente.setCallbackEstado(estadoSerializado -> {
-                Gdx.app.postRunnable(() -> actualizarEstado(estadoSerializado));
-            });
-
-            Mensaje join = new Mensaje(TipoMensaje.UNIRSE, 0, 0, 0, 0, 0, 0, miNombre);
-            cliente.enviarMensaje(join);
-            System.out.println("[PantallaJuego] Enviado UNIRSE con nombre: " + miNombre);
-
-            Gdx.input.setInputProcessor(new InputAdapter() {
-                @Override
-                public boolean keyDown(int k) {
-                    if (k==Keys.W) up=true;
-                    if (k==Keys.S) down=true;
-                    if (k==Keys.A) left=true;
-                    if (k==Keys.D) right=true;
-                    return true;
-                }
-                @Override
-                public boolean keyUp(int k) {
-                    if (k==Keys.W) up=false;
-                    if (k==Keys.S) down=false;
-                    if (k==Keys.A) left=false;
-                    if (k==Keys.D) right=false;
-                    return true;
-                }
-                @Override
-                public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                    Vector3 touch = new Vector3(screenX, screenY, 0);
-                    camera.unproject(touch);
-                    for (Pelota p : estadoLocal.getPelotas().values()) {
-                        if (p.getIdJugador() == -1 && Math.hypot(touch.x - p.getX(), touch.y - p.getY()) < 20) {
-                            pelotaArrastrada = p;
-                            offsetX = p.getX() - touch.x;
-                            offsetY = p.getY() - touch.y;
-                            Mensaje tomar = new Mensaje(TipoMensaje.TOMAR_PELOTA, miId, p.getId(), 0, 0, 0, 0, "");
-                            cliente.enviarMensaje(tomar);
-                            break;
+            InicializadorRedPartida.ResultadoConexion conexion = InicializadorRedPartida.conectar(
+                    esAnfitrion,
+                    direccionIpServidor,
+                    nombre,
+                    idAvatar,
+                    servidorExistente,
+                    clienteExistente,
+                    gestorEstado::recibirEstadoSerializado,
+                    (idJugador, datosError) -> {
+                        if (idJugador < 0) {
+                            System.out.println("[PantallaJuego] No se pudo unir: " + datosError);
+                            juego.volverAlMenu();
+                            return;
                         }
+                        gestorEstado.establecerIdJugador(idJugador);
+                        System.out.println("[PantallaJuego] Asignado id jugador=" + idJugador + " (UDP)");
                     }
-                    return true;
-                }
-                @Override
-                public boolean touchDragged(int screenX, int screenY, int pointer) {
-                    if (pelotaArrastrada != null) {
-                        Vector3 touch = new Vector3(screenX, screenY, 0);
-                        camera.unproject(touch);
-                        float nuevaX = touch.x + offsetX;
-                        float nuevaY = touch.y + offsetY;
-                        nuevaX = Math.max(20, Math.min(1004, nuevaX));
-                        nuevaY = Math.max(20, Math.min(748, nuevaY));
-                        Mensaje mover = new Mensaje(TipoMensaje.MOVER_PELOTA, miId, pelotaArrastrada.getId(), nuevaX, nuevaY, 0, 0, "");
-                        cliente.enviarMensaje(mover);
-                        pelotaArrastrada.setX(nuevaX);
-                        pelotaArrastrada.setY(nuevaY);
-                    }
-                    return true;
-                }
-                @Override
-                public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-                    if (pelotaArrastrada != null) {
-                        Mensaje soltar = new Mensaje(TipoMensaje.SOLTAR_PELOTA, miId, pelotaArrastrada.getId(), 0, 0, 0, 0, "");
-                        cliente.enviarMensaje(soltar);
-                        pelotaArrastrada = null;
-                    }
-                    return true;
-                }
-            });
+            );
+            this.cliente = conexion.cliente;
+            this.servidor = conexion.servidor;
+
+            renderizador = new RenderizadorPartida(
+                    camara, dibujadorFormas, loteSprites, fuente, estadoLocal, gestorSonidos,
+                    new ProveedorInterfazPartidaGestorEstado(gestorEstado));
+
+            movimientoLocal = new MovimientoJugadorLocal(estadoLocal, cliente, estadoTeclasMovimiento, velocidadMovimiento);
+
+            controladorEntrada = new ControladorEntradaJuego(camara, estadoLocal, cliente,
+                    new DelegadoEntradaPartida(
+                            gestorEstado,
+                            datosArrastre,
+                            estadoTeclasMovimiento,
+                            () -> partidaFinalizada,
+                            () -> gestorSonidos.alternarSilencio()));
+
+            Gdx.input.setInputProcessor(controladorEntrada);
         } catch (Exception e) {
             e.printStackTrace();
             juego.volverAlMenu();
         }
     }
 
-    private void actualizarEstado(String estado) {
-        String[] partes = estado.split("\\|");
-        if (partes.length < 3) return;
-        estadoLocal.getJugadores().clear();
-        String[] jugs = partes[1].split(";");
-        for (String j : jugs) {
-            if (j.isEmpty()) continue;
-            String[] d = j.split(",");
-            if (d.length >= 7) {
-                int id = Integer.parseInt(d[0]);
-                String nom = d[1];
-                float x = Float.parseFloat(d[2]);
-                float y = Float.parseFloat(d[3]);
-                int pts = Integer.parseInt(d[4]);
-                int av = Integer.parseInt(d[5]);
-                boolean tiene = Integer.parseInt(d[6]) == 1;
-                Jugador jug = new Jugador(id, nom, av);
-                jug.setX(x); jug.setY(y);
-                jug.setPuntaje(pts);
-                jug.setTienePelota(tiene);
-                estadoLocal.agregarJugador(jug);
-                if (nom.equals(miNombre)) miId = id;
-            }
+    @Override
+    public void render(float deltaSegundos) {
+        if (!partidaFinalizada && gestorEstado.obtenerTiempoRestanteSegundos() == 0) {
+            partidaFinalizada = true;
+            NavegacionFinPartida.irAPantallaFinal(juego, estadoLocal, (int) juego.getConfiguracion().getTiempoLimite());
+            return;
         }
-        estadoLocal.getPelotas().clear();
-        String[] pels = partes[2].split(";");
-        for (String p : pels) {
-            if (p.isEmpty()) continue;
-            String[] d = p.split(",");
-            if (d.length >= 6) {
-                int id = Integer.parseInt(d[0]);
-                float x = Float.parseFloat(d[1]);
-                float y = Float.parseFloat(d[2]);
-                float vx = Float.parseFloat(d[3]);
-                float vy = Float.parseFloat(d[4]);
-                int jugId = Integer.parseInt(d[5]);
-                Pelota pel = new Pelota(id, x, y);
-                pel.setVx(vx); pel.setVy(vy);
-                pel.setIdJugador(jugId);
-                estadoLocal.agregarPelota(pel);
-            }
+
+        movimientoLocal.actualizar(deltaSegundos, gestorEstado.obtenerIdJugador(), partidaFinalizada);
+        if (renderizador != null) {
+            renderizador.render(deltaSegundos);
         }
     }
 
     @Override
-    public void render(float delta) {
-        if (miId != -1) {
-            float dx=0, dy=0;
-            if (up) dy += velocidad*delta;
-            if (down) dy -= velocidad*delta;
-            if (right) dx += velocidad*delta;
-            if (left) dx -= velocidad*delta;
-            if (dx!=0 || dy!=0) {
-                Jugador yo = estadoLocal.getJugador(miId);
-                if (yo != null) {
-                    float nx = yo.getX() + dx;
-                    float ny = yo.getY() + dy;
-                    nx = Math.max(20, Math.min(1004, nx));
-                    ny = Math.max(20, Math.min(748, ny));
-                    yo.setX(nx); yo.setY(ny);
-                    Mensaje mover = new Mensaje(TipoMensaje.MOVER_JUGADOR, miId, 0, nx, ny, 0, 0, "");
-                    cliente.enviarMensaje(mover);
-                }
-            }
+    public void resize(int ancho, int alto) {
+        if (renderizador != null) {
+            renderizador.resize(ancho, alto);
         }
-        Gdx.gl.glClearColor(0.2f,0.3f,0.4f,1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        camera.update();
-        shape.setProjectionMatrix(camera.combined);
-        shape.begin(ShapeRenderer.ShapeType.Filled);
-        // Zonas (arcos) simples
-        shape.setColor(0.8f,0.8f,0.8f,0.5f);
-        for (int i=0;i<6;i++) {
-            float x = (i<3)?100:924;
-            float y = (i%3)*120+200;
-            shape.rect(x-40,y-60,80,120);
-        }
-        for (Jugador j : estadoLocal.getJugadores().values()) {
-            float[] c = colores[j.getAvatarId() % colores.length];
-            shape.setColor(c[0], c[1], c[2], 1);
-            shape.circle(j.getX(), j.getY(), 20);
-            if (j.isTienePelota()) {
-                shape.setColor(1,1,1,1);
-                shape.circle(j.getX()+15, j.getY()+15, 8);
-            }
-        }
-        shape.setColor(1,0.8f,0,1);
-        for (Pelota p : estadoLocal.getPelotas().values()) {
-            shape.circle(p.getX(), p.getY(), 12);
-        }
-        shape.end();
-        batch.begin();
-        font.draw(batch, "PUNTAJES:", 20, 740);
-        int y = 710;
-        for (Jugador j : estadoLocal.getJugadores().values()) {
-            font.draw(batch, j.getNombre() + ": " + j.getPuntaje(), 30, y);
-            y -= 30;
-        }
-        batch.end();
     }
 
-    @Override public void resize(int w, int h) { camera.viewportWidth = w; camera.viewportHeight = h; camera.update(); }
-    @Override public void dispose() { shape.dispose(); batch.dispose(); font.dispose(); if(cliente!=null) cliente.cerrar(); if(servidor!=null) servidor.detener(); }
-    @Override public void show() {}
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override
+    public void dispose() {
+        dibujadorFormas.dispose();
+        loteSprites.dispose();
+        fuente.dispose();
+        if (cliente != null) {
+            cliente.cerrar();
+        }
+        if (servidor != null) {
+            servidor.detener();
+        }
+        if (renderizador != null) {
+            renderizador.dispose();
+        }
+        if (gestorSonidos != null) {
+            gestorSonidos.dispose();
+        }
+    }
+
+    @Override
+    public void show() {
+        if (gestorSonidos != null) {
+            gestorSonidos.iniciarMusicaFondo();
+        }
+    }
+
+    @Override
+    public void pause() {
+        if (gestorSonidos != null) {
+            gestorSonidos.pausarMusicaFondo();
+        }
+    }
+
+    @Override
+    public void resume() {
+        if (gestorSonidos != null) {
+            gestorSonidos.reanudarMusicaFondo();
+        }
+    }
+
+    @Override
+    public void hide() {
+        if (gestorSonidos != null) {
+            gestorSonidos.detenerMusicaFondo();
+        }
+    }
 }

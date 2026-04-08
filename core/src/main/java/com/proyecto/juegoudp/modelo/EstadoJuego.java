@@ -3,6 +3,9 @@ package com.proyecto.juegoudp.modelo;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Estado compartido del juego: jugadores, pelotas y zonas (modelo de dominio sin red).
+ */
 public class EstadoJuego {
     private Map<Integer, Jugador> jugadores;
     private Map<Integer, Pelota> pelotas;
@@ -22,4 +25,6 @@ public class EstadoJuego {
     public void agregarZona(Zona z) { zonas.put(z.getId(), z); }
     public Zona getZona(int id) { return zonas.get(id); }
     public Map<Integer, Zona> getZonas() { return zonas; }
+    /**
+     * hghghg*/
 }

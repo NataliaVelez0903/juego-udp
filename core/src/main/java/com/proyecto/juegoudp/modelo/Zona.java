@@ -1,5 +1,8 @@
 package com.proyecto.juegoudp.modelo;
 
+/**
+ * Rectángulo de gol asociado a un jugador; se usa para detectar anotaciones.
+ */
 public class Zona {
     private int id, idJugador;
     private float x, y, ancho, alto;

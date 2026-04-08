@@ -5,7 +5,13 @@ import com.proyecto.juegoudp.modelo.ConfiguracionPartida;
 import com.proyecto.juegoudp.pantallas.PantallaEspera;
 import com.proyecto.juegoudp.pantallas.PantallaJuego;
 import com.proyecto.juegoudp.pantallas.PantallaMenu;
+import com.proyecto.juegoudp.red.ClienteUdp;
+import com.proyecto.juegoudp.red.ServidorUdp;
 
+/**
+ * Punto de entrada del juego libGDX: configuración global y transición entre pantallas.
+ * La descripción del proyecto y la arquitectura están en {@code README.md} en la raíz del repositorio.
+ */
 public class JuegoPrincipal extends Game {
     private ConfiguracionPartida configuracion;
     private String nombreJugador;
@@ -17,15 +23,48 @@ public class JuegoPrincipal extends Game {
         setScreen(new PantallaMenu(this));
     }
 
-    public void setNombreJugador(String nombre) { this.nombreJugador = nombre; }
-    public String getNombreJugador() { return nombreJugador; }
-    public void setAvatarSeleccionado(int avatar) { this.avatarSeleccionado = avatar; }
-    public int getAvatarSeleccionado() { return avatarSeleccionado; }
-    public ConfiguracionPartida getConfiguracion() { return configuracion; }
-    public void setConfiguracion(ConfiguracionPartida config) { this.configuracion = config; }
+    public void setNombreJugador(String nombre) {
+        this.nombreJugador = nombre;
+    }
+
+    public String getNombreJugador() {
+        return nombreJugador;
+    }
+
+    public void setAvatarSeleccionado(int avatar) {
+        this.avatarSeleccionado = avatar;
+    }
+
+    public int getAvatarSeleccionado() {
+        return avatarSeleccionado;
+    }
+
+    public ConfiguracionPartida getConfiguracion() {
+        return configuracion;
+    }
+
+    public void setConfiguracion(ConfiguracionPartida config) {
+        this.configuracion = config;
+    }
+
+    public void iniciarJuego(boolean esAnfitrion, String direccionIpServidor) {
+        iniciarJuegoDesdeEspera(esAnfitrion, direccionIpServidor, null, null);
+    }
+
+ feature/nueva-version
+    /** Tras la sala de espera: reutiliza servidor/cliente UDP si no son null. */
+    public void iniciarJuegoDesdeEspera(
+            boolean esAnfitrion,
+            String direccionIpServidor,
+            ServidorUdp servidor,
+            ClienteUdp cliente
+    ) {
+        setScreen(new com.proyecto.juegoudp.pantallas.PantallaJuego(this, esAnfitrion, direccionIpServidor,
+                nombreJugador, avatarSeleccionado, servidor, cliente));
 
     public void iniciarJuego(boolean esHost, String ipServidor) {
         setScreen(new PantallaEspera(this, esHost, ipServidor));
+ develop
     }
 
     public void iniciarPartida(boolean esHost, String ipServidor) {
