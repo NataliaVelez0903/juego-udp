@@ -59,12 +59,12 @@ com.proyecto.juegoudp
 │   ├── menu/           # Validación del menú (ValidacionMenu)
 │   └── ui/             # FabricaSkinBasico, IFabricaSkin
 ├── modelo/             # EstadoJuego, Jugador, Pelota, Zona, ConfiguracionPartida (sin sockets)
-├── red/                # ClienteUdp, ServidorUdp, Mensaje, serialización y análisis de STATE
+├── red/                # ClienteUDP, ServidorUDP, Mensaje, serialización y análisis de STATE
 ├── sonido/             # GestorSonidos (singleton)
 └── utilidades/         # Constantes (puerto, máx. jugadores, frecuencia de envío)
 ```
 
-**Flujo de red:** todos los jugadores (incluido el anfitrión) usan `ClienteUdp`. Solo el anfitrión ejecuta `ServidorUdp`, que difunde instantáneas `STATE|...` y procesa mensajes (`UNIRSE`, `MOVER_JUGADOR`, pelota, etc.).
+**Flujo de red:** todos los jugadores (incluido el anfitrión) usan `ClienteUDP`. Solo el anfitrión ejecuta `ServidorUDP`, que difunde instantáneas `STATE|...` y procesa mensajes (`UNIRSE`, `MOVER_JUGADOR`, pelota, etc.).
 
 **Patrones destacados:** delegación en pantalla de partida (`ControladorEntradaJuego`, `RenderizadorPartida`, `GestorEstadoRedPartida`), factoría de apariencia (`IFabricaSkin`), procesador y serializador de estado en el servidor, callbacks hacia la UI en la sala de espera.
 

@@ -21,7 +21,7 @@ Juego multijugador en tiempo real (**2 a 4 jugadores**) desarrollado en Java / l
 ## 4. Arquitectura del sistema
 
 - `pantallas/`: interfaz y flujo (`PantallaMenu`, `PantallaEspera`, `PantallaJuego`, `PantallaFinal`).
-- `red/`: transporte UDP, serialización y servidor autoritativo (`ClienteUdp`, `ServidorUdp`, `Mensaje`, `TipoMensaje`, analizadores de `STATE`).
+- `red/`: transporte UDP, serialización y servidor autoritativo (`ClienteUDP`, `ServidorUDP`, `Mensaje`, `TipoMensaje`, analizadores de `STATE`).
 - `modelo/`: entidades y estado (`Jugador`, `Pelota`, `Zona`, `EstadoJuego`, `ConfiguracionPartida`).
 - `sonido/`: audio centralizado (`GestorSonidos`).
 - `utilidades/`: constantes (puerto UDP, límites de jugadores, frecuencia de envío).
@@ -29,7 +29,7 @@ Juego multijugador en tiempo real (**2 a 4 jugadores**) desarrollado en Java / l
 ## 5. Patrones de diseño usados
 
 1. **Singleton:** `GestorSonidos` para una instancia global de audio.
-2. **Observer / callback:** `ClienteUdp` notifica estado y mensajes mediante consumidores, desacoplando red de la UI.
+2. **Observer / callback:** `ClienteUDP` notifica estado y mensajes mediante consumidores, desacoplando red de la UI.
 3. **Delegación:** pantalla de partida separa entrada (`ControladorEntradaJuego`), dibujo (`RenderizadorPartida`) y estado de red (`GestorEstadoRedPartida`).
 
 ## 6. Comunicación UDP (flujo técnico)
