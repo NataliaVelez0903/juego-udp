@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
 /**
- * Cliente UDP: envía mensajes al servidor y recibe estado o mensajes en un hilo de escucha.
+ * Cliente UDP: envía mensajes al servidor y recibe estado o mensajes en un hilo de escucha....
  */
 public class ClienteUDP {
     private DatagramSocket conexionDatagrama;
@@ -17,6 +17,7 @@ public class ClienteUDP {
     private boolean activo;
     private Consumer<String> alRecibirEstado;
     private Consumer<Mensaje> alRecibirMensaje;
+
 
     public ClienteUDP(String direccionIpServidor) throws Exception {
         conexionDatagrama = new DatagramSocket();
