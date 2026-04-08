@@ -62,10 +62,32 @@ public class PantallaEspera implements Screen {
         });
         escenario.addActor(botonCancelar);
 
+ feature/nueva-version
         conexionSala = new ConexionSalaUdp(juego, esAnfitrion, this.direccionIpServidor, new EscuchaSala() {
             @Override
             public void alFallo(String mensaje) {
                 etiquetaEstado.setText(mensaje);
+
+    private void iniciarConexion() {
+        new Thread(() -> {
+            try {
+                if (esHost) {
+                    Gdx.app.postRunnable(() -> labelEstado.setText("Iniciando servidor..."));
+                    servidor = new ServidorUDP();
+                    servidor.start();
+                    String ipLocal = java.net.InetAddress.getLocalHost().getHostAddress();
+                    Gdx.app.postRunnable(() -> labelEstado.setText("Servidor listo en IP: " + ipLocal + "\nEsperando jugadores..."));
+                    Thread.sleep(15000);
+                } else {
+                    Gdx.app.postRunnable(() -> labelEstado.setText("Conectando a " + ipServidor + "..."));
+                    cliente = new ClienteUDP(ipServidor);
+                    Gdx.app.postRunnable(() -> labelEstado.setText("Conectado. Esperando inicio del host..."));
+                    Thread.sleep(15000);
+                }
+                Gdx.app.postRunnable(() -> juego.iniciarPartida(esHost, ipServidor));
+            } catch (Exception e) {
+                Gdx.app.postRunnable(() -> labelEstado.setText("Error: " + e.getMessage()));
+ develop
             }
 
             @Override
@@ -137,6 +159,7 @@ public class PantallaEspera implements Screen {
         escenario.act(deltaSegundos);
         escenario.draw();
     }
+ feature/nueva-version
 
     @Override
     public void resize(int ancho, int alto) {
@@ -158,3 +181,13 @@ public class PantallaEspera implements Screen {
     @Override
     public void resume() {}
 }
+
+    @Override
+    public void resize(int w, int h) { stage.getViewport().update(w,h,true); }
+    @Override public void dispose() { stage.dispose(); skin.dispose(); }
+    @Override public void show() {}
+    @Override public void pause() {}
+    @Override public void resume() {}
+    @Override public void hide() {}
+}
+ develop

@@ -2,6 +2,8 @@ package com.proyecto.juegoudp;
 
 import com.badlogic.gdx.Game;
 import com.proyecto.juegoudp.modelo.ConfiguracionPartida;
+import com.proyecto.juegoudp.pantallas.PantallaEspera;
+import com.proyecto.juegoudp.pantallas.PantallaJuego;
 import com.proyecto.juegoudp.pantallas.PantallaMenu;
 import com.proyecto.juegoudp.red.ClienteUdp;
 import com.proyecto.juegoudp.red.ServidorUdp;
@@ -49,6 +51,7 @@ public class JuegoPrincipal extends Game {
         iniciarJuegoDesdeEspera(esAnfitrion, direccionIpServidor, null, null);
     }
 
+ feature/nueva-version
     /** Tras la sala de espera: reutiliza servidor/cliente UDP si no son null. */
     public void iniciarJuegoDesdeEspera(
             boolean esAnfitrion,
@@ -58,8 +61,15 @@ public class JuegoPrincipal extends Game {
     ) {
         setScreen(new com.proyecto.juegoudp.pantallas.PantallaJuego(this, esAnfitrion, direccionIpServidor,
                 nombreJugador, avatarSeleccionado, servidor, cliente));
+
+    public void iniciarJuego(boolean esHost, String ipServidor) {
+        setScreen(new PantallaEspera(this, esHost, ipServidor));
+ develop
     }
 
+    public void iniciarPartida(boolean esHost, String ipServidor) {
+        setScreen(new PantallaJuego(this, esHost, ipServidor, nombreJugador, avatarSeleccionado));
+    }
     public void volverAlMenu() {
         setScreen(new PantallaMenu(this));
     }
