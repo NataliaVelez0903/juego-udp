@@ -3,6 +3,7 @@ package com.proyecto.juegoudp.red;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
 public class ClienteUDP {
@@ -28,7 +29,7 @@ public class ClienteUDP {
                 try {
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                     socket.receive(packet);
-                    String texto = new String(packet.getData(), 0, packet.getLength());
+                    String texto = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.UTF_8);
                     if (texto.startsWith("STATE|")) {
                         if (callbackEstado != null) callbackEstado.accept(texto);
                     } else {
@@ -45,10 +46,12 @@ public class ClienteUDP {
     public void enviarMensaje(Mensaje msg) {
         try {
             String texto = msg.serializar();
-            byte[] data = texto.getBytes();
+            byte[] data = texto.getBytes(StandardCharsets.UTF_8);
             DatagramPacket packet = new DatagramPacket(data, data.length, servidorIP, puertoServidor);
             socket.send(packet);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            System.err.println("[Cliente] Error al enviar: " + e.getMessage());
+        }
     }
 
     public void setCallbackEstado(Consumer<String> cb) { this.callbackEstado = cb; }

@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.proyecto.juegoudp.JuegoPrincipal;
 import com.proyecto.juegoudp.modelo.ConfiguracionPartida;
+import com.proyecto.juegoudp.utilidades.Constantes;
 
 public class PantallaMenu implements Screen {
     private JuegoPrincipal juego;
@@ -80,7 +81,7 @@ public class PantallaMenu implements Screen {
         });
         stage.addActor(btnCliente);
 
-        Label lblJugadores = new Label("Número de jugadores (2-6):", skin);
+        Label lblJugadores = new Label("Número de jugadores (2-" + Constantes.MAX_JUGADORES + "):", skin);
         lblJugadores.setPosition(300, 410);
         stage.addActor(lblJugadores);
         campoJugadores = new TextField("2", skin);
@@ -128,7 +129,7 @@ public class PantallaMenu implements Screen {
         for (var actor : stage.getActors()) {
             if (actor instanceof Label) {
                 String txt = ((Label)actor).getText().toString();
-                if (txt.equals("Número de jugadores (2-6):") || txt.equals("Tiempo límite (s):"))
+                if (txt.startsWith("Número de jugadores (2-") || txt.equals("Tiempo límite (s):"))
                     actor.setVisible(host);
                 if (txt.equals("IP del Host:"))
                     actor.setVisible(!host);
@@ -151,7 +152,7 @@ public class PantallaMenu implements Screen {
             try {
                 int num = Integer.parseInt(campoJugadores.getText().trim());
                 if (num < 2) num = 2;
-                if (num > 6) num = 6;
+                if (num > Constantes.MAX_JUGADORES) num = Constantes.MAX_JUGADORES;
                 int tiempo = Integer.parseInt(campoTiempo.getText().trim());
                 if (tiempo < 30) tiempo = 30;
                 ConfiguracionPartida config = juego.getConfiguracion();

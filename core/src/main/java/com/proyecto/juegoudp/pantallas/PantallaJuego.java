@@ -25,6 +25,9 @@ import com.proyecto.juegoudp.modelo.Jugador;
 import com.proyecto.juegoudp.modelo.Pelota;
 import com.proyecto.juegoudp.modelo.EstadoJuego;
 import com.proyecto.juegoudp.sonido.GestorSonidos;
+import com.proyecto.juegoudp.utilidades.Constantes;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 public class PantallaJuego implements Screen {
     private JuegoPrincipal juego;
@@ -62,12 +65,25 @@ public class PantallaJuego implements Screen {
     private String miNombre;
     private boolean esHost;
     private float velocidad = 300f;
+    /** Acumuladores para no saturar UDP con posición. */
+    private float acumuladorEnvioJugador;
+    private float acumuladorEnvioPelota;
+    private long ultimoSeqEstado = -1;
     private boolean up, down, left, right;
     private float[][] colores = {{1,0,0},{0,0,1},{0,1,0},{1,1,0},{1,0,1},{0,1,1}};
     private Pelota pelotaArrastrada = null;
     private float offsetX, offsetY;
 
     public PantallaJuego(JuegoPrincipal juego, boolean esHost, String ipServidor, String nombre, int avatarId) {
+        this(juego, esHost, ipServidor, nombre, avatarId, null, null);
+    }
+
+    /**
+     * @param servidorExistente si no es null (host), se reutiliza el servidor de la sala de espera
+     * @param clienteExistente si no es null, se reutiliza el cliente UDP de la sala de espera
+     */
+    public PantallaJuego(JuegoPrincipal juego, boolean esHost, String ipServidor, String nombre, int avatarId,
+                         ServidorUDP servidorExistente, ClienteUDP clienteExistente) {
         this.juego = juego;
         this.esHost = esHost;
         this.miNombre = nombre;
@@ -85,9 +101,7 @@ public class PantallaJuego implements Screen {
         // Iniciar música de fondo
         this.gestorSonidos.iniciarMusicaFondo();
 
-        /**v
-
-         /**
+        /**
          * Se carga fondo de juego
          * */
         fondo = new Texture(Gdx.files.internal("images/fondo.jpg"));
@@ -105,11 +119,16 @@ public class PantallaJuego implements Screen {
 
 
         try {
-            if (esHost) {
+            if (clienteExistente != null) {
+                cliente = clienteExistente;
+                if (esHost && servidorExistente != null) {
+                    servidor = servidorExistente;
+                    System.out.println("[PantallaJuego] Reutilizando servidor y cliente desde sala de espera");
+                }
+            } else if (esHost) {
                 System.out.println("[PantallaJuego] Iniciando servidor (host)...");
                 servidor = new ServidorUDP();
                 servidor.start();
-                Thread.sleep(1000);
                 cliente = new ClienteUDP("localhost");
             } else {
                 System.out.println("[PantallaJuego] Conectando a servidor remoto: " + ipServidor);
@@ -119,19 +138,27 @@ public class PantallaJuego implements Screen {
             cliente.setCallbackEstado(estadoSerializado -> {
                 Gdx.app.postRunnable(() -> actualizarEstado(estadoSerializado));
             });
+            cliente.setCallbackMensaje(msg -> {
+                if (msg.getTipo() != TipoMensaje.TU_ID) return;
+                Gdx.app.postRunnable(() -> {
+                    if (msg.getIdJugador() < 0) {
+                        System.out.println("[PantallaJuego] No se pudo unir: " + msg.getDatos());
+                        juego.volverAlMenu();
+                        return;
+                    }
+                    miId = msg.getIdJugador();
+                    System.out.println("[PantallaJuego] Asignado miId=" + miId + " (UDP)");
+                });
+            });
 
-            Mensaje join = new Mensaje(TipoMensaje.UNIRSE, 0, 0, 0, 0, 0, 0, miNombre);
+            String datosUnirse = miNombre + "\t" + avatarId;
+            Mensaje join = new Mensaje(TipoMensaje.UNIRSE, 0, 0, 0, 0, 0, 0, datosUnirse);
             cliente.enviarMensaje(join);
-            System.out.println("[PantallaJuego] Enviado UNIRSE con nombre: " + miNombre);
+            System.out.println("[PantallaJuego] Enviado UNIRSE: " + miNombre + " (avatar " + avatarId + ")");
 
             Gdx.input.setInputProcessor(new InputAdapter() {
                 @Override
                 public boolean keyDown(int k) {
-                    if (k==Keys.W) up=true;
-                    if (k==Keys.S) down=true;
-                    if (k==Keys.A) left=true;
-                    if (k==Keys.D) right=true;
-                    // Tecla M para activar/desactivar música
                     if (k==Keys.M) {
                         if (gestorSonidos.isMusicaSonando()) {
                             gestorSonidos.setMusicaActivada(false);
@@ -139,6 +166,11 @@ public class PantallaJuego implements Screen {
                             gestorSonidos.setMusicaActivada(true);
                         }
                     }
+                    if (miId < 0) return true;
+                    if (k==Keys.W) up=true;
+                    if (k==Keys.S) down=true;
+                    if (k==Keys.A) left=true;
+                    if (k==Keys.D) right=true;
                     return true;
                 }
                 @Override
@@ -151,6 +183,7 @@ public class PantallaJuego implements Screen {
                 }
                 @Override
                 public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                    if (miId < 0) return true;
                     Vector3 touch = new Vector3(screenX, screenY, 0);
                     camera.unproject(touch);
                     for (Pelota p : estadoLocal.getPelotas().values()) {
@@ -167,26 +200,34 @@ public class PantallaJuego implements Screen {
                 }
                 @Override
                 public boolean touchDragged(int screenX, int screenY, int pointer) {
-                    if (pelotaArrastrada != null) {
-                        Vector3 touch = new Vector3(screenX, screenY, 0);
-                        camera.unproject(touch);
-                        float nuevaX = touch.x + offsetX;
-                        float nuevaY = touch.y + offsetY;
-                        nuevaX = Math.max(20, Math.min(1004, nuevaX));
-                        nuevaY = Math.max(20, Math.min(748, nuevaY));
+                    if (miId < 0 || pelotaArrastrada == null) return true;
+                    Vector3 touch = new Vector3(screenX, screenY, 0);
+                    camera.unproject(touch);
+                    float nuevaX = touch.x + offsetX;
+                    float nuevaY = touch.y + offsetY;
+                    nuevaX = Math.max(20, Math.min(1004, nuevaX));
+                    nuevaY = Math.max(20, Math.min(748, nuevaY));
+                    pelotaArrastrada.setX(nuevaX);
+                    pelotaArrastrada.setY(nuevaY);
+                    float delta = Gdx.graphics.getDeltaTime();
+                    acumuladorEnvioPelota += delta;
+                    float intervalo = 1f / Constantes.ENVIOS_RED_POR_SEGUNDO;
+                    if (acumuladorEnvioPelota >= intervalo) {
+                        acumuladorEnvioPelota = 0;
                         Mensaje mover = new Mensaje(TipoMensaje.MOVER_PELOTA, miId, pelotaArrastrada.getId(), nuevaX, nuevaY, 0, 0, "");
                         cliente.enviarMensaje(mover);
-                        pelotaArrastrada.setX(nuevaX);
-                        pelotaArrastrada.setY(nuevaY);
                     }
                     return true;
                 }
                 @Override
                 public boolean touchUp(int screenX, int screenY, int pointer, int button) {
                     if (pelotaArrastrada != null) {
-                        Mensaje soltar = new Mensaje(TipoMensaje.SOLTAR_PELOTA, miId, pelotaArrastrada.getId(), 0, 0, 0, 0, "");
-                        cliente.enviarMensaje(soltar);
+                        if (miId >= 0) {
+                            Mensaje soltar = new Mensaje(TipoMensaje.SOLTAR_PELOTA, miId, pelotaArrastrada.getId(), 0, 0, 0, 0, "");
+                            cliente.enviarMensaje(soltar);
+                        }
                         pelotaArrastrada = null;
+                        acumuladorEnvioPelota = 0;
                     }
                     return true;
                 }
@@ -229,8 +270,36 @@ public class PantallaJuego implements Screen {
     }
 
     private void actualizarEstado(String estado) {
-        String[] partes = estado.split("\\|");
+        if (!estado.startsWith("STATE|")) return;
+        String[] partes = estado.split("\\|", 6);
         if (partes.length < 3) return;
+
+        int idxJugadores;
+        int idxPelotas;
+        if (partes.length >= 5) {
+            try {
+                long seq = Long.parseLong(partes[1]);
+                if (seq <= ultimoSeqEstado) return;
+                ultimoSeqEstado = seq;
+            } catch (NumberFormatException e) {
+                return;
+            }
+            idxJugadores = 3;
+            idxPelotas = 4;
+        } else if (partes.length == 4) {
+            try {
+                long seq = Long.parseLong(partes[1]);
+                if (seq <= ultimoSeqEstado) return;
+                ultimoSeqEstado = seq;
+            } catch (NumberFormatException e) {
+                return;
+            }
+            idxJugadores = 2;
+            idxPelotas = 3;
+        } else {
+            idxJugadores = 1;
+            idxPelotas = 2;
+        }
 
         // Guardar puntajes antes de actualizar
         int puntajeTotalAnterior = 0;
@@ -239,13 +308,18 @@ public class PantallaJuego implements Screen {
         }
 
         estadoLocal.getJugadores().clear();
-        String[] jugs = partes[1].split(";");
+        String[] jugs = partes[idxJugadores].split(";");
         for (String j : jugs) {
             if (j.isEmpty()) continue;
-            String[] d = j.split(",");
+            String[] d = j.split(",", 7);
             if (d.length >= 7) {
                 int id = Integer.parseInt(d[0]);
-                String nom = d[1];
+                String nom;
+                try {
+                    nom = URLDecoder.decode(d[1], StandardCharsets.UTF_8);
+                } catch (Exception e) {
+                    nom = d[1];
+                }
                 float x = Float.parseFloat(d[2]);
                 float y = Float.parseFloat(d[3]);
                 int pts = Integer.parseInt(d[4]);
@@ -274,7 +348,7 @@ public class PantallaJuego implements Screen {
         }
 
         estadoLocal.getPelotas().clear();
-        String[] pels = partes[2].split(";");
+        String[] pels = partes[idxPelotas].split(";");
         for (String p : pels) {
             if (p.isEmpty()) continue;
             String[] d = p.split(",");
@@ -298,8 +372,8 @@ public class PantallaJuego implements Screen {
     @Override
     public void render(float delta) {
 
-        // -------- MOVIMIENTO --------
-        if (miId != -1) {
+        // -------- MOVIMIENTO (envío limitado por UDP) --------
+        if (miId >= 0) {
             float dx = 0, dy = 0;
 
             if (up) dy += velocidad * delta;
@@ -319,11 +393,16 @@ public class PantallaJuego implements Screen {
                     yo.setX(nx);
                     yo.setY(ny);
 
-                    Mensaje mover = new Mensaje(
-                        TipoMensaje.MOVER_JUGADOR,
-                        miId, 0, nx, ny, 0, 0, ""
-                    );
-                    cliente.enviarMensaje(mover);
+                    acumuladorEnvioJugador += delta;
+                    float intervalo = 1f / Constantes.ENVIOS_RED_POR_SEGUNDO;
+                    if (acumuladorEnvioJugador >= intervalo) {
+                        acumuladorEnvioJugador = 0;
+                        Mensaje mover = new Mensaje(
+                            TipoMensaje.MOVER_JUGADOR,
+                            miId, 0, nx, ny, 0, 0, ""
+                        );
+                        cliente.enviarMensaje(mover);
+                    }
                 }
             }
         }
@@ -392,6 +471,9 @@ public class PantallaJuego implements Screen {
         }
 
         // -------- 4. UI --------
+        if (miId < 0) {
+            font.draw(batch, "Conectando al servidor (UDP)...", 20, 400);
+        }
         // Mostrar estado de la música
         if (gestorSonidos != null && !gestorSonidos.isMusicaSonando()) {
             font.draw(batch, "MUSICA: OFF (Presiona M para activar)", 20, 50);

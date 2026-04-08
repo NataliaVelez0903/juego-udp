@@ -3,6 +3,8 @@ package com.proyecto.juegoudp;
 import com.badlogic.gdx.Game;
 import com.proyecto.juegoudp.modelo.ConfiguracionPartida;
 import com.proyecto.juegoudp.pantallas.PantallaMenu;
+import com.proyecto.juegoudp.red.ClienteUDP;
+import com.proyecto.juegoudp.red.ServidorUDP;
 
 public class JuegoPrincipal extends Game {
     private ConfiguracionPartida configuracion;
@@ -23,8 +25,13 @@ public class JuegoPrincipal extends Game {
     public void setConfiguracion(ConfiguracionPartida config) { this.configuracion = config; }
 
     public void iniciarJuego(boolean esHost, String ipServidor) {
+        iniciarJuegoDesdeEspera(esHost, ipServidor, null, null);
+    }
+
+    /** Tras la sala de espera: reutiliza servidor/cliente UDP si no son null. */
+    public void iniciarJuegoDesdeEspera(boolean esHost, String ipServidor, ServidorUDP servidor, ClienteUDP cliente) {
         setScreen(new com.proyecto.juegoudp.pantallas.PantallaJuego(this, esHost, ipServidor,
-                nombreJugador, avatarSeleccionado));
+                nombreJugador, avatarSeleccionado, servidor, cliente));
     }
 
     public void volverAlMenu() {

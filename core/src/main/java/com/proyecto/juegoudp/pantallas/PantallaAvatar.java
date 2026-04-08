@@ -70,8 +70,9 @@ public class PantallaAvatar implements Screen {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
                 juego.setAvatarSeleccionado(avatarSeleccionado);
-                juego.iniciarJuego(juego.getConfiguracion().isEsHost(),
-                        juego.getConfiguracion().getIpServidor());
+                juego.setScreen(new PantallaEspera(juego,
+                        juego.getConfiguracion().isEsHost(),
+                        juego.getConfiguracion().getIpServidor()));
             }
         });
         stage.addActor(btnConfirmar);
