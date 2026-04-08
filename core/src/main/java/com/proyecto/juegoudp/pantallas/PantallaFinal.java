@@ -13,13 +13,15 @@ import com.proyecto.juegoudp.JuegoPrincipal;
 import com.proyecto.juegoudp.modelo.Jugador;
 import java.util.List;
 
-// se muestran los resultados finales
+/**
+ * Pantalla de fin de partida: ganador, ranking por puntaje y tiempo total.
+ */
 public class PantallaFinal implements Screen {
     private final JuegoPrincipal juego;
     private final Stage stage;
     private final Skin skin;
 
-    public PantallaFinal(JuegoPrincipal juego, String ganador, int puntajeGanador, List<Jugador> ranking) {
+    public PantallaFinal(JuegoPrincipal juego, String ganador, int puntajeGanador, List<Jugador> ranking, int tiempoTotalSegundos) {
         this.juego = juego;
         this.stage = new Stage(new ScreenViewport());
         this.skin = crearSkinBasico();
@@ -32,8 +34,13 @@ public class PantallaFinal implements Screen {
         Label lblGanador = new Label("Ganador: " + ganador + " (" + puntajeGanador + " pts)", skin);
         lblGanador.setPosition(280, 590);
         stage.addActor(lblGanador);
+        int min = Math.max(0, tiempoTotalSegundos) / 60;
+        int seg = Math.max(0, tiempoTotalSegundos) % 60;
+        Label lblTiempo = new Label(String.format("Tiempo total: %02d:%02d", min, seg), skin);
+        lblTiempo.setPosition(280, 560);
+        stage.addActor(lblTiempo);
 
-        int y = 540;
+        int y = 520;
         int pos = 1;
         for (Jugador j : ranking) {
             Label linea = new Label(pos + ". " + j.getNombre() + " - " + j.getPuntaje() + " pts", skin);

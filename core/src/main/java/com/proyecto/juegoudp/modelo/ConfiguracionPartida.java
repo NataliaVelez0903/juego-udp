@@ -1,5 +1,8 @@
 package com.proyecto.juegoudp.modelo;
 
+/**
+ * Parámetros elegidos en el menú: modo anfitrión/cliente, IP, jugadores requeridos y duración.
+ */
 public class ConfiguracionPartida {
     private int numeroJugadores = 2;
     private float tiempoLimite = 60;

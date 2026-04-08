@@ -1,4 +1,7 @@
 package com.proyecto.juegoudp.utilidades;
-// generadorId
+
+/**
+ * Reservado para generación de identificadores; actualmente sin implementación activa.
+ */
 public class GeneradorId {
 }

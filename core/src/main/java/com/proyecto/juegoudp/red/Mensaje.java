@@ -2,6 +2,9 @@ package com.proyecto.juegoudp.red;
 
 import java.util.Locale;
 
+/**
+ * Mensaje UDP serializable (tipo, identificadores, posición/velocidad y cadena de datos opcional).
+ */
 public class Mensaje {
     private TipoMensaje tipo;
     private int idJugador, idObjeto;

@@ -1,5 +1,8 @@
 package com.proyecto.juegoudp.modelo;
 
+/**
+ * Pelota con posición, velocidad y jugador que la controla ({@code -1} si está suelta).
+ */
 public class Pelota {
     private int id, idJugador;
     private float x, y, vx, vy;

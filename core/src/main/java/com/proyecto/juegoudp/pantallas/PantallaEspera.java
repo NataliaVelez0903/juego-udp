@@ -3,198 +3,150 @@ package com.proyecto.juegoudp.pantallas;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.proyecto.juegoudp.JuegoPrincipal;
-import com.proyecto.juegoudp.red.ClienteUDP;
 import com.proyecto.juegoudp.red.Mensaje;
-import com.proyecto.juegoudp.red.ParserEstadoUDP;
-import com.proyecto.juegoudp.red.ServidorUDP;
-import com.proyecto.juegoudp.red.TipoMensaje;
+import com.proyecto.juegoudp.pantallas.espera.ConexionSalaUdp;
+import com.proyecto.juegoudp.pantallas.espera.EscuchaSala;
+import com.proyecto.juegoudp.pantallas.ui.FabricaSkinBasico;
+import com.proyecto.juegoudp.pantallas.ui.IFabricaSkin;
 import com.proyecto.juegoudp.utilidades.Constantes;
 
+/**
+ * Sala de espera hasta alcanzar el número de jugadores y comenzar la partida por UDP.
+ */
 public class PantallaEspera implements Screen {
     private final JuegoPrincipal juego;
-    private final Stage stage;
-    private final Skin skin;
-    private final Label labelEstado;
-    private final Label labelAyuda;
-    private final boolean esHost;
-    private final String ipServidor;
-    private ServidorUDP servidor;
-    private ClienteUDP cliente;
-    private int miId = -1;
-    private int conectados;
-    private int requeridos = 2;
-    private int tiempoPartidaSeg = 60;
-    /** Evita cerrar red al pasar a partida reutilizando sockets. */
-    private boolean pasandoAPartida;
+    private final Stage escenario;
+    private final Skin apariencia;
+    private final IFabricaSkin fabricaSkin = new FabricaSkinBasico();
+    private final Label etiquetaEstado;
+    private final Label etiquetaAyuda;
+    private final boolean esAnfitrion;
+    private final String direccionIpServidor;
+    private final ConexionSalaUdp conexionSala;
 
-    public PantallaEspera(JuegoPrincipal juego, boolean esHost, String ipServidor) {
+    public PantallaEspera(JuegoPrincipal juego, boolean esAnfitrion, String direccionIpServidor) {
         this.juego = juego;
-        this.esHost = esHost;
-        this.ipServidor = ipServidor == null ? "" : ipServidor.trim();
-        stage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(stage);
-        skin = crearSkinBasico();
+        this.esAnfitrion = esAnfitrion;
+        this.direccionIpServidor = direccionIpServidor == null ? "" : direccionIpServidor.trim();
+        escenario = new Stage(new ScreenViewport());
+        Gdx.input.setInputProcessor(escenario);
+        apariencia = fabricaSkin.crearSkin();
 
-        Label titulo = new Label(esHost ? "Sala del host — esperando jugadores" : "Sala de espera", skin);
+        Label titulo = new Label(esAnfitrion ? "Sala del host — esperando jugadores" : "Sala de espera", apariencia);
         titulo.setPosition(512 - titulo.getPrefWidth() / 2, 520);
-        stage.addActor(titulo);
+        escenario.addActor(titulo);
 
-        labelEstado = new Label("Iniciando...", skin);
-        labelEstado.setPosition(80, 400);
-        stage.addActor(labelEstado);
+        etiquetaEstado = new Label("Iniciando...", apariencia);
+        etiquetaEstado.setPosition(80, 400);
+        escenario.addActor(etiquetaEstado);
 
-        labelAyuda = new Label("", skin);
-        labelAyuda.setFontScale(0.85f);
-        labelAyuda.setPosition(80, 340);
-        stage.addActor(labelAyuda);
+        etiquetaAyuda = new Label("", apariencia);
+        etiquetaAyuda.setFontScale(0.85f);
+        etiquetaAyuda.setPosition(80, 340);
+        escenario.addActor(etiquetaAyuda);
 
-        TextButton btnCancelar = new TextButton("Cancelar", skin);
-        btnCancelar.setPosition(452, 180);
-        btnCancelar.setSize(120, 40);
-        btnCancelar.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+        TextButton botonCancelar = new TextButton("Cancelar", apariencia);
+        botonCancelar.setPosition(452, 180);
+        botonCancelar.setSize(120, 40);
+        botonCancelar.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
                 cancelar();
             }
         });
-        stage.addActor(btnCancelar);
+        escenario.addActor(botonCancelar);
+
+        conexionSala = new ConexionSalaUdp(juego, esAnfitrion, this.direccionIpServidor, new EscuchaSala() {
+            @Override
+            public void alFallo(String mensaje) {
+                etiquetaEstado.setText(mensaje);
+            }
+
+            @Override
+            public void alAsignarIdJugador(int idJugador) {
+                actualizarTextoEstado();
+            }
+
+            @Override
+            public void alActualizarConectados(int conectados, int requeridos) {
+                actualizarTextoEstado();
+            }
+
+            @Override
+            public void alIniciarPartida() {
+                juego.iniciarJuegoDesdeEspera(esAnfitrion, esAnfitrion ? "localhost" : PantallaEspera.this.direccionIpServidor,
+                        conexionSala.obtenerServidor(), conexionSala.obtenerCliente());
+            }
+
+            @Override
+            public void alRecibirMensaje(Mensaje mensaje) {
+                // Reservado para registro o telemetría
+            }
+        });
 
         iniciarRed();
     }
 
-    private Skin crearSkinBasico() {
-        Skin skinBasico = new Skin();
-        BitmapFont font = new BitmapFont();
-        skinBasico.add("default", font);
-        Label.LabelStyle labelStyle = new Label.LabelStyle();
-        labelStyle.font = font;
-        skinBasico.add("default", labelStyle);
-        TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
-        buttonStyle.font = font;
-        skinBasico.add("default", buttonStyle);
-        return skinBasico;
-    }
-
     private void iniciarRed() {
-        try {
-            requeridos = Math.max(2, Math.min(juego.getConfiguracion().getNumeroJugadores(), Constantes.MAX_JUGADORES));
-            tiempoPartidaSeg = Math.max(30, (int) juego.getConfiguracion().getTiempoLimite());
-
-            if (esHost) {
-                servidor = new ServidorUDP(requeridos, tiempoPartidaSeg);
-                servidor.start();
-                cliente = new ClienteUDP("localhost");
-                String ipLocal;
-                try {
-                    ipLocal = java.net.InetAddress.getLocalHost().getHostAddress();
-                } catch (Exception e) {
-                    ipLocal = "?";
-                }
-                labelAyuda.setText("Otros deben unirse con la IP: " + ipLocal + " (puerto UDP " + 5000 + ")\n"
-                        + "Objetivo: " + requeridos + " jugadores conectados.\n"
-                        + "Tiempo de partida: " + tiempoPartidaSeg + " s.");
-            } else {
-                if (this.ipServidor.isEmpty()) {
-                    labelEstado.setText("Error: falta IP del host.");
-                    return;
-                }
-                cliente = new ClienteUDP(this.ipServidor);
-                labelAyuda.setText("Conectando al host " + this.ipServidor + " ...");
-            }
-
-            cliente.setCallbackEstado(estado -> Gdx.app.postRunnable(() -> onEstadoRecibido(estado)));
-            cliente.setCallbackMensaje(msg -> Gdx.app.postRunnable(() -> onMensaje(msg)));
-
-            String datosUnirse = juego.getNombreJugador() + "\t" + juego.getAvatarSeleccionado();
-            cliente.enviarMensaje(new Mensaje(TipoMensaje.UNIRSE, 0, 0, 0, 0, 0, 0, datosUnirse));
-
-            labelEstado.setText("Conectados: 0 / " + requeridos + "\nEsperando asignación de id...");
-        } catch (Exception e) {
-            labelEstado.setText("Error: " + e.getMessage());
-            e.printStackTrace();
+        conexionSala.iniciar();
+        if (esAnfitrion) {
+            etiquetaAyuda.setText("Otros deben unirse con la IP: " + conexionSala.obtenerDireccionIpLocal()
+                    + " (puerto UDP " + Constantes.PUERTO_UDP + ")\n"
+                    + "Objetivo: " + conexionSala.obtenerJugadoresRequeridos() + " jugadores conectados.\n"
+                    + "Tiempo de partida: " + conexionSala.obtenerDuracionPartidaSegundos() + " s.");
+        } else {
+            etiquetaAyuda.setText("Conectando al host " + this.direccionIpServidor + " ...");
         }
+        labelEstadoInicial();
     }
 
-    private void onMensaje(Mensaje msg) {
-        if (msg.getTipo() != TipoMensaje.TU_ID) return;
-        if (msg.getIdJugador() < 0) {
-            labelEstado.setText("No se pudo unir: " + msg.getDatos());
-            detenerRed();
-            return;
-        }
-        miId = msg.getIdJugador();
-        actualizarTextoEstado();
-        intentarPasarAPartida();
-    }
-
-    private void onEstadoRecibido(String estado) {
-        if (!estado.startsWith("STATE|")) return;
-        conectados = ParserEstadoUDP.contarJugadores(ParserEstadoUDP.segmentoJugadores(estado));
-        int req = ParserEstadoUDP.leerJugadoresRequeridos(estado);
-        if (req > 0) requeridos = req;
-        actualizarTextoEstado();
-        intentarPasarAPartida();
+    private void labelEstadoInicial() {
+        etiquetaEstado.setText("Conectados: 0 / " + conexionSala.obtenerJugadoresRequeridos() + "\nEsperando asignación de id...");
     }
 
     private void actualizarTextoEstado() {
-        String lineaId = miId >= 0 ? "Tu id: " + miId : "Esperando confirmación del servidor...";
-        labelEstado.setText("Conectados: " + conectados + " / " + requeridos + "\n" + lineaId);
-    }
-
-    private void intentarPasarAPartida() {
-        if (pasandoAPartida) return;
-        if (miId < 0) return;
-        if (conectados < requeridos) return;
-        pasandoAPartida = true;
-        juego.iniciarJuegoDesdeEspera(esHost, esHost ? "localhost" : ipServidor, servidor, cliente);
-    }
-
-    private void detenerRed() {
-        if (pasandoAPartida) return;
-        if (servidor != null) {
-            servidor.detener();
-            servidor = null;
-        }
-        if (cliente != null) {
-            cliente.cerrar();
-            cliente = null;
-        }
+        String lineaId = conexionSala.obtenerMiIdentificador() >= 0
+                ? "Tu id: " + conexionSala.obtenerMiIdentificador()
+                : "Esperando confirmación del servidor...";
+        etiquetaEstado.setText("Conectados: " + conexionSala.obtenerJugadoresConectados()
+                + " / " + conexionSala.obtenerJugadoresRequeridos() + "\n" + lineaId);
     }
 
     private void cancelar() {
-        detenerRed();
+        conexionSala.detener();
         juego.volverAlMenu();
     }
 
     @Override
     public void hide() {
-        if (!pasandoAPartida) detenerRed();
+        if (!conexionSala.estaPasandoAPartida()) {
+            conexionSala.detener();
+        }
     }
 
     @Override
-    public void render(float delta) {
+    public void render(float deltaSegundos) {
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.2f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        stage.act(delta);
-        stage.draw();
+        escenario.act(deltaSegundos);
+        escenario.draw();
     }
 
     @Override
-    public void resize(int w, int h) {
-        stage.getViewport().update(w, h, true);
+    public void resize(int ancho, int alto) {
+        escenario.getViewport().update(ancho, alto, true);
     }
 
     @Override
     public void dispose() {
-        stage.dispose();
-        skin.dispose();
+        escenario.dispose();
+        apariencia.dispose();
     }
 
     @Override

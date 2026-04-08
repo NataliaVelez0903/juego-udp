@@ -3,18 +3,29 @@ package com.proyecto.juegoudp.pantallas;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.proyecto.juegoudp.JuegoPrincipal;
 import com.proyecto.juegoudp.modelo.ConfiguracionPartida;
+import com.proyecto.juegoudp.pantallas.menu.ValidacionMenu;
+import com.proyecto.juegoudp.pantallas.ui.FabricaSkinBasico;
+import com.proyecto.juegoudp.pantallas.ui.IFabricaSkin;
 import com.proyecto.juegoudp.utilidades.Constantes;
 
+/**
+ * Menú principal: nombre, modo anfitrión o cliente, IP, tamaño de sala y duración de partida.
+ */
 public class PantallaMenu implements Screen {
-    private JuegoPrincipal juego;
-    private Stage stage;
-    private Skin skin;
+    private final JuegoPrincipal juego;
+    private final Stage stage;
+    private final Skin skin;
+    private final IFabricaSkin fabricaSkin = new FabricaSkinBasico();
+    private final ValidacionMenu validador = new ValidacionMenu();
+
     private TextField campoNombre, campoIp, campoJugadores, campoTiempo;
     private Label labelError;
     private boolean modoHost = true;
@@ -23,28 +34,11 @@ public class PantallaMenu implements Screen {
         this.juego = juego;
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
-        skin = crearSkinBasico();
-        crearUI();
+        skin = fabricaSkin.crearSkin();
+        crearUi();
     }
 
-    private Skin crearSkinBasico() {
-        Skin skinBasico = new Skin();
-        BitmapFont font = new BitmapFont();
-        skinBasico.add("default", font);
-        Label.LabelStyle labelStyle = new Label.LabelStyle();
-        labelStyle.font = font;
-        skinBasico.add("default", labelStyle);
-        TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
-        buttonStyle.font = font;
-        skinBasico.add("default", buttonStyle);
-        TextField.TextFieldStyle textFieldStyle = new TextField.TextFieldStyle();
-        textFieldStyle.font = font;
-        textFieldStyle.fontColor = com.badlogic.gdx.graphics.Color.WHITE;
-        skinBasico.add("default", textFieldStyle);
-        return skinBasico;
-    }
-
-    private void crearUI() {
+    private void crearUi() {
         Label titulo = new Label("PELOTEROS - MULTIJUGADOR", skin);
         titulo.setPosition(512 - titulo.getWidth()/2, 650);
         stage.addActor(titulo);
@@ -142,37 +136,28 @@ public class PantallaMenu implements Screen {
 
     private void iniciar() {
         String nombre = campoNombre.getText().trim();
-        if (nombre.isEmpty()) {
-            labelError.setText("Ingresa un nombre");
-            return;
-        }
-        juego.setNombreJugador(nombre);
-
         if (modoHost) {
-            try {
-                int num = Integer.parseInt(campoJugadores.getText().trim());
-                if (num < 2) num = 2;
-                if (num > Constantes.MAX_JUGADORES) num = Constantes.MAX_JUGADORES;
-                int tiempo = Integer.parseInt(campoTiempo.getText().trim());
-                if (tiempo < 30) tiempo = 30;
-                ConfiguracionPartida config = juego.getConfiguracion();
-                config.setNumeroJugadores(num);
-                config.setTiempoLimite(tiempo);
-                config.setEsHost(true);
-                juego.setConfiguracion(config);
-                juego.setScreen(new PantallaAvatar(juego));
-            } catch (NumberFormatException e) {
-                labelError.setText("Número inválido");
-            }
+            ValidacionMenu.Resultado res = validador.validarHost(nombre, campoJugadores.getText(), campoTiempo.getText());
+            if (!res.ok) { labelError.setText(res.error); return; }
+
+            juego.setNombreJugador(nombre);
+            ConfiguracionPartida config = juego.getConfiguracion();
+            config.setNumeroJugadores(res.jugadores);
+            config.setTiempoLimite(res.tiempo);
+            config.setEsHost(true);
+            juego.setConfiguracion(config);
+            juego.setAvatarSeleccionado(0);
+            juego.setScreen(new PantallaEspera(juego, true, "localhost"));
         } else {
             String ip = campoIp.getText().trim();
-            if (ip.isEmpty()) {
-                labelError.setText("Ingresa IP del Host");
-                return;
-            }
+            String error = validador.validarCliente(nombre, ip);
+            if (!error.isEmpty()) { labelError.setText(error); return; }
+
+            juego.setNombreJugador(nombre);
             juego.getConfiguracion().setEsHost(false);
             juego.getConfiguracion().setIpServidor(ip);
-            juego.setScreen(new PantallaAvatar(juego));
+            juego.setAvatarSeleccionado(0);
+            juego.setScreen(new PantallaEspera(juego, false, ip));
         }
     }
 

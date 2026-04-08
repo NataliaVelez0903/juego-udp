@@ -6,8 +6,7 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 
 /**
- * Clase responsable de gestionar todos los sonidos del juego
- * Principio de Responsabilidad Única (SRP)
+ * Punto central de audio: música de fondo, efecto de gol y volúmenes (patrón singleton).
  */
 public class GestorSonidos {
     private static GestorSonidos instancia;
