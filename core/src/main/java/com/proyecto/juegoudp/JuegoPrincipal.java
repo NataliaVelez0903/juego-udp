@@ -3,7 +3,12 @@ package com.proyecto.juegoudp;
 import com.badlogic.gdx.Game;
 import com.proyecto.juegoudp.modelo.ConfiguracionPartida;
 import com.proyecto.juegoudp.pantallas.PantallaMenu;
+<<<<<<< HEAD
 import com.proyecto.juegoudp.red.ClienteUdp;
+=======
+import com.proyecto.juegoudp.red.ClienteUDP;
+import com.proyecto.juegoudp.red.ServidorUDP;
+>>>>>>> 32857898659ebd838fe83e4507b0e8a04a86503c
 
 /**
  * Punto de entrada del juego libGDX: configuración global y transición entre pantallas.
@@ -52,8 +57,8 @@ public class JuegoPrincipal extends Game {
     public void iniciarJuegoDesdeEspera(
             boolean esAnfitrion,
             String direccionIpServidor,
-            ServidorUdp servidor,
-            ClienteUdp cliente
+            ServidorUDP servidor,
+            ClienteUDP cliente
     ) {
         setScreen(new com.proyecto.juegoudp.pantallas.PantallaJuego(this, esAnfitrion, direccionIpServidor,
                 nombreJugador, avatarSeleccionado, servidor, cliente));

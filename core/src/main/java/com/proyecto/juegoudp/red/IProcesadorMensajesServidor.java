@@ -15,8 +15,8 @@ public interface IProcesadorMensajesServidor {
             String claveCliente,
             EstadoJuego estadoJuego,
             Map<String, Integer> jugadorPorCliente,
-            Map<String, ServidorUdp.ClienteInfoPublica> clientes,
-            ServidorUdp.Envio envio,
+            Map<String, ServidorUDP.ClienteInfoPublica> clientes,
+            ServidorUDP.Envio envio,
             boolean partidaTerminada
     );
 }

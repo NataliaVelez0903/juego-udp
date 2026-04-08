@@ -19,8 +19,8 @@ public class ProcesadorMensajesServidor implements IProcesadorMensajesServidor {
             String claveCliente,
             EstadoJuego estadoJuego,
             Map<String, Integer> jugadorPorCliente,
-            Map<String, ServidorUdp.ClienteInfoPublica> clientes,
-            ServidorUdp.Envio envio,
+            Map<String, ServidorUDP.ClienteInfoPublica> clientes,
+            ServidorUDP.Envio envio,
             boolean partidaTerminada
     ) {
         switch (mensaje.getTipo()) {
@@ -51,7 +51,7 @@ public class ProcesadorMensajesServidor implements IProcesadorMensajesServidor {
             String claveCliente,
             EstadoJuego estadoJuego,
             Map<String, Integer> jugadorPorCliente,
-            ServidorUdp.Envio envio
+            ServidorUDP.Envio envio
     ) {
         Integer idPrevio = jugadorPorCliente.get(claveCliente);
         if (idPrevio != null) {

@@ -1,8 +1,12 @@
 package com.proyecto.juegoudp.pantallas.juego;
 
 import com.badlogic.gdx.Gdx;
-import com.proyecto.juegoudp.red.ClienteUdp;
+import com.proyecto.juegoudp.red.ClienteUDP;
 import com.proyecto.juegoudp.red.Mensaje;
+<<<<<<< HEAD
+=======
+import com.proyecto.juegoudp.red.ServidorUDP;
+>>>>>>> 32857898659ebd838fe83e4507b0e8a04a86503c
 import com.proyecto.juegoudp.red.TipoMensaje;
 
 /**
@@ -13,10 +17,10 @@ public final class InicializadorRedPartida {
 
     /** Cliente UDP y, si aplica, referencia al servidor del anfitrión. */
     public static final class ResultadoConexion {
-        public final ClienteUdp cliente;
-        public final ServidorUdp servidor;
+        public final ClienteUDP cliente;
+        public final ServidorUDP servidor;
 
-        public ResultadoConexion(ClienteUdp cliente, ServidorUdp servidor) {
+        public ResultadoConexion(ClienteUDP cliente, ServidorUDP servidor) {
             this.cliente = cliente;
             this.servidor = servidor;
         }
@@ -41,13 +45,13 @@ public final class InicializadorRedPartida {
             String direccionIpServidor,
             String nombreJugador,
             int idAvatar,
-            ServidorUdp servidorExistente,
-            ClienteUdp clienteExistente,
+            ServidorUDP servidorExistente,
+            ClienteUDP clienteExistente,
             EscuchaEstadoSerializado escuchaEstado,
             EscuchaIdentificadorJugador escuchaIdentificador
     ) throws Exception {
-        ClienteUdp cliente;
-        ServidorUdp servidor = null;
+        ClienteUDP cliente;
+        ServidorUDP servidor = null;
 
         if (clienteExistente != null) {
             cliente = clienteExistente;
@@ -55,11 +59,11 @@ public final class InicializadorRedPartida {
                 servidor = servidorExistente;
             }
         } else if (esAnfitrion) {
-            servidor = new ServidorUdp();
+            servidor = new ServidorUDP();
             servidor.start();
-            cliente = new ClienteUdp("localhost");
+            cliente = new ClienteUDP("localhost");
         } else {
-            cliente = new ClienteUdp(direccionIpServidor);
+            cliente = new ClienteUDP(direccionIpServidor);
         }
 
         cliente.setCallbackEstado(estado -> Gdx.app.postRunnable(() -> escuchaEstado.alRecibirEstado(estado)));

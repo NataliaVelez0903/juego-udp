@@ -2,7 +2,7 @@ package com.proyecto.juegoudp.pantallas.juego;
 
 import com.proyecto.juegoudp.modelo.EstadoJuego;
 import com.proyecto.juegoudp.modelo.Jugador;
-import com.proyecto.juegoudp.red.ClienteUdp;
+import com.proyecto.juegoudp.red.ClienteUDP;
 import com.proyecto.juegoudp.red.Mensaje;
 import com.proyecto.juegoudp.red.TipoMensaje;
 import com.proyecto.juegoudp.utilidades.Constantes;
@@ -12,14 +12,14 @@ import com.proyecto.juegoudp.utilidades.Constantes;
  */
 public final class MovimientoJugadorLocal {
     private final EstadoJuego estadoLocal;
-    private final ClienteUdp cliente;
+    private final ClienteUDP cliente;
     private final boolean[] estadoTeclasMovimiento;
     private final float velocidadPixelesSegundo;
     private float acumuladorSegundosParaEnvio;
 
     public MovimientoJugadorLocal(
             EstadoJuego estadoLocal,
-            ClienteUdp cliente,
+            ClienteUDP cliente,
             boolean[] estadoTeclasMovimiento,
             float velocidadPixelesSegundo
     ) {

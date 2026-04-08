@@ -3,8 +3,12 @@ package com.proyecto.juegoudp.pantallas.espera;
 import com.badlogic.gdx.Gdx;
 import com.proyecto.juegoudp.JuegoPrincipal;
 import com.proyecto.juegoudp.red.AnalizadorEstadoUdp;
-import com.proyecto.juegoudp.red.ClienteUdp;
+import com.proyecto.juegoudp.red.ClienteUDP;
 import com.proyecto.juegoudp.red.Mensaje;
+<<<<<<< HEAD
+=======
+import com.proyecto.juegoudp.red.ServidorUDP;
+>>>>>>> 32857898659ebd838fe83e4507b0e8a04a86503c
 import com.proyecto.juegoudp.red.TipoMensaje;
 import com.proyecto.juegoudp.utilidades.Constantes;
 import java.net.InetAddress;
@@ -18,8 +22,8 @@ public class ConexionSalaUdp implements IConexionSala {
     private final String direccionIpServidor;
     private final EscuchaSala escucha;
 
-    private ServidorUdp servidor;
-    private ClienteUdp cliente;
+    private ServidorUDP servidor;
+    private ClienteUDP cliente;
     private int miIdentificador = -1;
     private int jugadoresConectados;
     private int jugadoresRequeridos = 2;
@@ -53,11 +57,11 @@ public class ConexionSalaUdp implements IConexionSala {
         return transicionandoAPartida;
     }
 
-    public ServidorUdp obtenerServidor() {
+    public ServidorUDP obtenerServidor() {
         return servidor;
     }
 
-    public ClienteUdp obtenerCliente() {
+    public ClienteUDP obtenerCliente() {
         return cliente;
     }
 
@@ -68,15 +72,15 @@ public class ConexionSalaUdp implements IConexionSala {
             duracionPartidaSegundos = Math.max(30, (int) juego.getConfiguracion().getTiempoLimite());
 
             if (esAnfitrion) {
-                servidor = new ServidorUdp(jugadoresRequeridos, duracionPartidaSegundos);
+                servidor = new ServidorUDP(jugadoresRequeridos, duracionPartidaSegundos);
                 servidor.start();
-                cliente = new ClienteUdp("localhost");
+                cliente = new ClienteUDP("localhost");
             } else {
                 if (direccionIpServidor.isEmpty()) {
                     escucha.alFallo("Error: falta IP del host.");
                     return;
                 }
-                cliente = new ClienteUdp(direccionIpServidor);
+                cliente = new ClienteUDP(direccionIpServidor);
             }
 
             cliente.setCallbackEstado(estado -> Gdx.app.postRunnable(() -> alRecibirEstado(estado)));
