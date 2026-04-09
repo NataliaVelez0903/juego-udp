@@ -2,8 +2,8 @@ package com.proyecto.juegoudp.pantallas.juego;
 
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.proyecto.juegoudp.modelo.EstadoJuego;
 import com.proyecto.juegoudp.modelo.Pelota;
 import com.proyecto.juegoudp.red.ClienteUDP;
@@ -51,18 +51,18 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
         void alternarSilencioAudio();
     }
 
-    private final OrthographicCamera camara;
+    private final Viewport viewport;
     private final EstadoJuego estadoLocal;
     private final ClienteUDP cliente;
     private final EscuchaEntradaPartida escucha;
 
     public ControladorEntradaJuego(
-            OrthographicCamera camara,
+            Viewport viewport,
             EstadoJuego estadoLocal,
             ClienteUDP cliente,
             EscuchaEntradaPartida escucha
     ) {
-        this.camara = camara;
+        this.viewport = viewport;
         this.estadoLocal = estadoLocal;
         this.cliente = cliente;
         this.escucha = escucha;
@@ -127,7 +127,7 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
         }
 
         Vector3 toque = new Vector3(posicionPantallaX, posicionPantallaY, 0);
-        camara.unproject(toque);
+        viewport.unproject(toque);
 
         for (Pelota pelota : estadoLocal.getPelotas().values()) {
             if (pelota.getIdJugador() != -1) {
@@ -157,7 +157,7 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
         }
 
         Vector3 toque = new Vector3(posicionPantallaX, posicionPantallaY, 0);
-        camara.unproject(toque);
+        viewport.unproject(toque);
         float nuevaX = toque.x + escucha.obtenerDesplazamientoX();
         float nuevaY = toque.y + escucha.obtenerDesplazamientoY();
         nuevaX = Math.max(20, Math.min(1004, nuevaX));
@@ -179,7 +179,7 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
         int idJugador = escucha.obtenerIdJugador();
         if (idJugador >= 0) {
             Vector3 toque = new Vector3(posicionPantallaX, posicionPantallaY, 0);
-            camara.unproject(toque);
+            viewport.unproject(toque);
             float nuevaX = Math.max(20, Math.min(1004, toque.x + escucha.obtenerDesplazamientoX()));
             float nuevaY = Math.max(20, Math.min(748, toque.y + escucha.obtenerDesplazamientoY()));
             long ahora = System.currentTimeMillis();

@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.proyecto.juegoudp.JuegoPrincipal;
 import com.proyecto.juegoudp.modelo.EstadoJuego;
 import com.proyecto.juegoudp.pantallas.juego.ControladorEntradaJuego;
@@ -21,6 +22,8 @@ import com.proyecto.juegoudp.pantallas.juego.RenderizadorPartida;
 import com.proyecto.juegoudp.red.ClienteUDP;
 import com.proyecto.juegoudp.red.ServidorUDP;
 import com.proyecto.juegoudp.sonido.GestorSonidos;
+import com.proyecto.juegoudp.utilidades.Constantes;
+import com.proyecto.juegoudp.utilidades.UtilidadesPantalla;
 
 /**
  * Orquesta el ciclo de vida de la pantalla de partida; delega red, estado, entrada, dibujo y movimiento.
@@ -29,6 +32,7 @@ public class PantallaJuego implements Screen {
     private final JuegoPrincipal juego;
     private final GestorSonidos gestorSonidos;
     private final OrthographicCamera camara;
+    private final FitViewport viewport;
     private final ShapeRenderer dibujadorFormas;
     private final SpriteBatch loteSprites;
     private final BitmapFont fuente;
@@ -67,8 +71,10 @@ public class PantallaJuego implements Screen {
         this.dibujadorFormas = new ShapeRenderer();
         this.loteSprites = new SpriteBatch();
         this.fuente = new BitmapFont();
-        this.camara = new OrthographicCamera(1024, 768);
+        this.camara = new OrthographicCamera(Constantes.ANCHO_MUNDO, Constantes.ALTO_MUNDO);
         camara.setToOrtho(false);
+        this.viewport = new FitViewport(Constantes.ANCHO_MUNDO, Constantes.ALTO_MUNDO, camara);
+        viewport.apply(false);
 
         this.gestorSonidos = GestorSonidos.getInstancia();
         gestorSonidos.iniciarMusicaFondo();
@@ -101,7 +107,7 @@ public class PantallaJuego implements Screen {
 
             movimientoLocal = new MovimientoJugadorLocal(estadoLocal, cliente, estadoTeclasMovimiento, velocidadMovimiento);
 
-            controladorEntrada = new ControladorEntradaJuego(camara, estadoLocal, cliente,
+            controladorEntrada = new ControladorEntradaJuego(viewport, estadoLocal, cliente,
                     new DelegadoEntradaPartida(
                             gestorEstado,
                             datosArrastre,
@@ -120,11 +126,16 @@ public class PantallaJuego implements Screen {
     public void render(float deltaSegundos) {
         if (!partidaFinalizada && gestorEstado.obtenerTiempoRestanteSegundos() == 0) {
             partidaFinalizada = true;
-            NavegacionFinPartida.irAPantallaFinal(juego, estadoLocal, (int) juego.getConfiguracion().getTiempoLimite());
+            NavegacionFinPartida.irAPantallaFinal(
+                    juego,
+                    estadoLocal,
+                    (int) juego.getConfiguracion().getTiempoLimite(),
+                    gestorEstado.obtenerJugadoresRequeridos());
             return;
         }
 
         movimientoLocal.actualizar(deltaSegundos, gestorEstado.obtenerIdJugador(), partidaFinalizada);
+        UtilidadesPantalla.limpiarFondoCompletoYViewport(viewport, 0f, 0f, 0f);
         if (renderizador != null) {
             renderizador.render(deltaSegundos);
         }
@@ -132,9 +143,7 @@ public class PantallaJuego implements Screen {
 
     @Override
     public void resize(int ancho, int alto) {
-        if (renderizador != null) {
-            renderizador.resize(ancho, alto);
-        }
+        viewport.update(ancho, alto, true);
     }
 
     @Override
@@ -158,6 +167,7 @@ public class PantallaJuego implements Screen {
 
     @Override
     public void show() {
+        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
         if (gestorSonidos != null) {
             gestorSonidos.iniciarMusicaFondo();
         }
