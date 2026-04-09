@@ -120,7 +120,11 @@ public class PantallaJuego implements Screen {
     public void render(float deltaSegundos) {
         if (!partidaFinalizada && gestorEstado.obtenerTiempoRestanteSegundos() == 0) {
             partidaFinalizada = true;
-            NavegacionFinPartida.irAPantallaFinal(juego, estadoLocal, (int) juego.getConfiguracion().getTiempoLimite());
+            NavegacionFinPartida.irAPantallaFinal(
+                    juego,
+                    estadoLocal,
+                    (int) juego.getConfiguracion().getTiempoLimite(),
+                    gestorEstado.obtenerJugadoresRequeridos());
             return;
         }
 

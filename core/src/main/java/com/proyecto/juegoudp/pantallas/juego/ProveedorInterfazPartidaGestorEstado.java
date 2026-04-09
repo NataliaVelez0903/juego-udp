@@ -19,4 +19,9 @@ public final class ProveedorInterfazPartidaGestorEstado implements RenderizadorP
     public int obtenerTiempoRestanteSegundos() {
         return gestor.obtenerTiempoRestanteSegundos();
     }
+
+    @Override
+    public int obtenerJugadoresRequeridos() {
+        return gestor.obtenerJugadoresRequeridos();
+    }
 }

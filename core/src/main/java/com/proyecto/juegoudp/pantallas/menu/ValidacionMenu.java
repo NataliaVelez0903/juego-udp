@@ -44,8 +44,14 @@ public class ValidacionMenu {
             return Resultado.error("Número inválido");
         }
 
-        if (jugadores < 2) jugadores = 2;
-        if (jugadores > Constantes.MAX_JUGADORES) jugadores = Constantes.MAX_JUGADORES;
+        if (jugadores <= 2) {
+            jugadores = 2;
+        } else {
+            jugadores = 4;
+        }
+        if (jugadores > Constantes.MAX_JUGADORES) {
+            jugadores = Constantes.MAX_JUGADORES;
+        }
         if (tiempo < 30) tiempo = 30;
 
         return Resultado.ok(jugadores, tiempo);

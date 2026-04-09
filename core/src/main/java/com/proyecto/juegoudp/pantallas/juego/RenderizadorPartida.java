@@ -37,6 +37,8 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         int obtenerIdJugadorLocal();
 
         int obtenerTiempoRestanteSegundos();
+
+        int obtenerJugadoresRequeridos();
     }
 
     public RenderizadorPartida(
@@ -111,6 +113,21 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         }
 
         int yTexto = 710;
+        if (proveedorInterfaz.obtenerJugadoresRequeridos() >= 4) {
+            int puntajeEquipoA = 0;
+            int puntajeEquipoB = 0;
+            for (Jugador jugador : estadoLocal.getJugadores().values()) {
+                if (esEquipoA(jugador.getId())) {
+                    puntajeEquipoA += jugador.getPuntaje();
+                } else {
+                    puntajeEquipoB += jugador.getPuntaje();
+                }
+            }
+            fuente.draw(loteSprites, "Equipo A (J1/J3): " + puntajeEquipoA, 30, yTexto);
+            yTexto -= 30;
+            fuente.draw(loteSprites, "Equipo B (J2/J4): " + puntajeEquipoB, 30, yTexto);
+            yTexto -= 35;
+        }
         for (Jugador jugador : estadoLocal.getJugadores().values()) {
             fuente.draw(loteSprites, jugador.getNombre() + ": " + jugador.getPuntaje(), 30, yTexto);
             yTexto -= 30;
@@ -131,5 +148,9 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         texturaFondo.dispose();
         texturaPelota.dispose();
         texturaZona.dispose();
+    }
+
+    private boolean esEquipoA(int idJugador) {
+        return idJugador % 2 != 0;
     }
 }

@@ -14,7 +14,6 @@ import com.proyecto.juegoudp.modelo.ConfiguracionPartida;
 import com.proyecto.juegoudp.pantallas.menu.ValidacionMenu;
 import com.proyecto.juegoudp.pantallas.ui.FabricaSkinBasico;
 import com.proyecto.juegoudp.pantallas.ui.IFabricaSkin;
-import com.proyecto.juegoudp.utilidades.Constantes;
 
 /**
  * Menú principal: nombre, modo anfitrión o cliente, IP, tamaño de sala y duración de partida.
@@ -26,9 +25,11 @@ public class PantallaMenu implements Screen {
     private final IFabricaSkin fabricaSkin = new FabricaSkinBasico();
     private final ValidacionMenu validador = new ValidacionMenu();
 
-    private TextField campoNombre, campoIp, campoJugadores, campoTiempo;
+    private TextField campoNombre, campoIp, campoTiempo;
     private Label labelError;
+    private TextButton btnJugadores2, btnJugadores4;
     private boolean modoHost = true;
+    private int jugadoresSeleccionados = 2;
 
     public PantallaMenu(JuegoPrincipal juego) {
         this.juego = juego;
@@ -75,13 +76,32 @@ public class PantallaMenu implements Screen {
         });
         stage.addActor(btnCliente);
 
-        Label lblJugadores = new Label("Número de jugadores (2-" + Constantes.MAX_JUGADORES + "):", skin);
+        Label lblJugadores = new Label("Número de jugadores (2 o 4):", skin);
         lblJugadores.setPosition(300, 410);
         stage.addActor(lblJugadores);
-        campoJugadores = new TextField("2", skin);
-        campoJugadores.setPosition(480, 405);
-        campoJugadores.setSize(100,30);
-        stage.addActor(campoJugadores);
+        btnJugadores2 = new TextButton("2 JUGADORES", skin);
+        btnJugadores2.setPosition(500, 402);
+        btnJugadores2.setSize(120, 34);
+        btnJugadores2.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                jugadoresSeleccionados = 2;
+                labelError.setText("");
+            }
+        });
+        stage.addActor(btnJugadores2);
+
+        btnJugadores4 = new TextButton("4 JUGADORES", skin);
+        btnJugadores4.setPosition(630, 402);
+        btnJugadores4.setSize(120, 34);
+        btnJugadores4.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                jugadoresSeleccionados = 4;
+                labelError.setText("");
+            }
+        });
+        stage.addActor(btnJugadores4);
 
         Label lblTiempo = new Label("Tiempo límite (s):", skin);
         lblTiempo.setPosition(300, 360);
@@ -123,13 +143,14 @@ public class PantallaMenu implements Screen {
         for (var actor : stage.getActors()) {
             if (actor instanceof Label) {
                 String txt = ((Label)actor).getText().toString();
-                if (txt.startsWith("Número de jugadores (2-") || txt.equals("Tiempo límite (s):"))
+                if (txt.startsWith("Número de jugadores (2 o 4)") || txt.equals("Tiempo límite (s):"))
                     actor.setVisible(host);
                 if (txt.equals("IP del Host:"))
                     actor.setVisible(!host);
             }
         }
-        campoJugadores.setVisible(host);
+        btnJugadores2.setVisible(host);
+        btnJugadores4.setVisible(host);
         campoTiempo.setVisible(host);
         campoIp.setVisible(!host);
     }
@@ -137,7 +158,10 @@ public class PantallaMenu implements Screen {
     private void iniciar() {
         String nombre = campoNombre.getText().trim();
         if (modoHost) {
-            ValidacionMenu.Resultado res = validador.validarHost(nombre, campoJugadores.getText(), campoTiempo.getText());
+            ValidacionMenu.Resultado res = validador.validarHost(
+                    nombre,
+                    String.valueOf(jugadoresSeleccionados),
+                    campoTiempo.getText());
             if (!res.ok) { labelError.setText(res.error); return; }
 
             juego.setNombreJugador(nombre);

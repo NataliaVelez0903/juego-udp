@@ -71,7 +71,10 @@ public class ServidorUDP extends Thread {
     }
 
     public ServidorUDP(int jugadoresRequeridosSolicitados, int duracionPartidaSegundosSolicitada) throws Exception {
-        jugadoresRequeridos = Math.max(2, Math.min(jugadoresRequeridosSolicitados, Constantes.MAX_JUGADORES));
+        jugadoresRequeridos = jugadoresRequeridosSolicitados >= 4 ? 4 : 2;
+        if (jugadoresRequeridos > Constantes.MAX_JUGADORES) {
+            throw new IllegalArgumentException("MAX_JUGADORES no soporta modo de 4 equipos.");
+        }
         duracionPartidaSegundos = Math.max(30, duracionPartidaSegundosSolicitada);
         conexionDatagrama = new DatagramSocket(Constantes.PUERTO_UDP);
         conexionDatagrama.setSoTimeout(100);
@@ -148,11 +151,7 @@ public class ServidorUDP extends Thread {
                         }
                         for (Zona zona : estadoJuego.getZonas().values()) {
                             if (zona.contienePunto(pelota.getX(), pelota.getY())) {
-                                Jugador jugador = estadoJuego.getJugador(zona.getIdJugador());
-                                if (jugador != null) {
-                                    jugador.sumarPuntaje(10);
-                                    System.out.println("⚽ GOL de " + jugador.getNombre() + "!");
-                                }
+                                registrarGol(zona);
                                 pelota.setX(512);
                                 pelota.setY(384);
                                 pelota.setVx(0);
@@ -214,5 +213,36 @@ public class ServidorUDP extends Thread {
     public void detener() {
         activo = false;
         interrupt();
+    }
+
+    private void registrarGol(Zona zona) {
+        if (juegaPorEquipos()) {
+            int idEquipo = equipoDesdeIdJugador(zona.getIdJugador());
+            int puntajeEquipo = 0;
+            for (Jugador jugador : estadoJuego.getJugadores().values()) {
+                if (equipoDesdeIdJugador(jugador.getId()) == idEquipo) {
+                    jugador.sumarPuntaje(10);
+                    puntajeEquipo += jugador.getPuntaje();
+                }
+            }
+            String nombreEquipo = idEquipo == 1 ? "Equipo A (J1/J3)" : "Equipo B (J2/J4)";
+            System.out.println("⚽ GOL de " + nombreEquipo + "!");
+            System.out.println("[Servidor] Puntaje total equipo tras gol: " + puntajeEquipo);
+            return;
+        }
+
+        Jugador jugador = estadoJuego.getJugador(zona.getIdJugador());
+        if (jugador != null) {
+            jugador.sumarPuntaje(10);
+            System.out.println("⚽ GOL de " + jugador.getNombre() + "!");
+        }
+    }
+
+    private boolean juegaPorEquipos() {
+        return jugadoresRequeridos >= 4;
+    }
+
+    private int equipoDesdeIdJugador(int idJugador) {
+        return idJugador % 2 == 0 ? 2 : 1;
     }
 }

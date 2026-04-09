@@ -15,6 +15,7 @@ public final class GestorEstadoRedPartida {
     private int idJugador = -1;
     private long ultimaSecuenciaRecibida = -1;
     private int tiempoRestanteSegundos = -1;
+    private int jugadoresRequeridos = 2;
 
     public GestorEstadoRedPartida(EstadoJuego estadoLocal, GestorSonidos gestorSonidos, String nombreJugadorLocal) {
         this.estadoLocal = estadoLocal;
@@ -34,6 +35,10 @@ public final class GestorEstadoRedPartida {
         return tiempoRestanteSegundos;
     }
 
+    public int obtenerJugadoresRequeridos() {
+        return jugadoresRequeridos;
+    }
+
     /**
      * Procesa un {@code STATE|...} del servidor; ignora duplicados por secuencia.
      */
@@ -48,6 +53,7 @@ public final class GestorEstadoRedPartida {
         }
         ultimaSecuenciaRecibida = instantanea.secuencia;
         tiempoRestanteSegundos = instantanea.tiempoRestanteSegundos;
+        jugadoresRequeridos = instantanea.jugadoresRequeridos;
 
         AplicadorInstantaneaPartida.ResultadoAplicacion resultado =
                 AplicadorInstantaneaPartida.aplicar(instantanea, estadoLocal, nombreJugadorLocal, idJugador);
