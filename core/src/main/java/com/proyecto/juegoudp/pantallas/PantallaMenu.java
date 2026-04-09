@@ -2,18 +2,19 @@ package com.proyecto.juegoudp.pantallas;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.proyecto.juegoudp.JuegoPrincipal;
 import com.proyecto.juegoudp.modelo.ConfiguracionPartida;
 import com.proyecto.juegoudp.pantallas.menu.ValidacionMenu;
 import com.proyecto.juegoudp.pantallas.ui.FabricaSkinBasico;
 import com.proyecto.juegoudp.pantallas.ui.IFabricaSkin;
+import com.proyecto.juegoudp.utilidades.Constantes;
+import com.proyecto.juegoudp.utilidades.UtilidadesPantalla;
 
 /**
  * Menú principal: nombre, modo anfitrión o cliente, IP, tamaño de sala y duración de partida.
@@ -33,7 +34,7 @@ public class PantallaMenu implements Screen {
 
     public PantallaMenu(JuegoPrincipal juego) {
         this.juego = juego;
-        stage = new Stage(new ScreenViewport());
+        stage = new Stage(new FitViewport(Constantes.ANCHO_MUNDO, Constantes.ALTO_MUNDO));
         Gdx.input.setInputProcessor(stage);
         skin = fabricaSkin.crearSkin();
         crearUi();
@@ -187,14 +188,15 @@ public class PantallaMenu implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.2f,0.2f,0.3f,1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        UtilidadesPantalla.limpiarFondoCompletoYViewport(stage.getViewport(), 0.2f, 0.2f, 0.3f);
         stage.act(delta);
         stage.draw();
     }
     @Override public void resize(int w, int h) { stage.getViewport().update(w,h,true); }
     @Override public void dispose() { stage.dispose(); skin.dispose(); }
-    @Override public void show() {}
+    @Override public void show() {
+        stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
+    }
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}

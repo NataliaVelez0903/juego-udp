@@ -2,12 +2,11 @@ package com.proyecto.juegoudp.pantallas;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.proyecto.juegoudp.JuegoPrincipal;
 import com.proyecto.juegoudp.red.Mensaje;
 import com.proyecto.juegoudp.pantallas.espera.ConexionSalaUdp;
@@ -15,6 +14,7 @@ import com.proyecto.juegoudp.pantallas.espera.EscuchaSala;
 import com.proyecto.juegoudp.pantallas.ui.FabricaSkinBasico;
 import com.proyecto.juegoudp.pantallas.ui.IFabricaSkin;
 import com.proyecto.juegoudp.utilidades.Constantes;
+import com.proyecto.juegoudp.utilidades.UtilidadesPantalla;
 
 /**
  * Sala de espera hasta alcanzar el número de jugadores y comenzar la partida por UDP.
@@ -34,7 +34,7 @@ public class PantallaEspera implements Screen {
         this.juego = juego;
         this.esAnfitrion = esAnfitrion;
         this.direccionIpServidor = direccionIpServidor == null ? "" : direccionIpServidor.trim();
-        escenario = new Stage(new ScreenViewport());
+        escenario = new Stage(new FitViewport(Constantes.ANCHO_MUNDO, Constantes.ALTO_MUNDO));
         Gdx.input.setInputProcessor(escenario);
         apariencia = fabricaSkin.crearSkin();
 
@@ -136,8 +136,7 @@ public class PantallaEspera implements Screen {
 
     @Override
     public void render(float deltaSegundos) {
-        Gdx.gl.glClearColor(0.1f, 0.1f, 0.2f, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        UtilidadesPantalla.limpiarFondoCompletoYViewport(escenario.getViewport(), 0.1f, 0.1f, 0.2f);
         escenario.act(deltaSegundos);
         escenario.draw();
     }
@@ -154,7 +153,9 @@ public class PantallaEspera implements Screen {
     }
 
     @Override
-    public void show() {}
+    public void show() {
+        escenario.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
+    }
 
     @Override
     public void pause() {}
