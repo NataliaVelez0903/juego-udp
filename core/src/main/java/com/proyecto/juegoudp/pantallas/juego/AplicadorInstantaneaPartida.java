@@ -12,10 +12,10 @@ public final class AplicadorInstantaneaPartida {
     private AplicadorInstantaneaPartida() {}
 
     public static ResultadoAplicacion aplicar(
-            AnalizadorInstantaneaJuego.InstantaneaPartida instantanea,
-            EstadoJuego estadoLocal,
-            String nombreJugadorLocal,
-            int idJugadorActual
+        AnalizadorInstantaneaJuego.InstantaneaPartida instantanea,
+        EstadoJuego estadoLocal,
+        String nombreJugadorLocal,
+        int idJugadorActual
     ) {
         int puntajeTotalAnterior = 0;
         for (Jugador jugador : estadoLocal.getJugadores().values()) {
@@ -50,6 +50,13 @@ public final class AplicadorInstantaneaPartida {
             pelota.setVy(datoPelota.vy);
             pelota.setIdJugador(datoPelota.idJugador);
             estadoLocal.agregarPelota(pelota);
+        }
+
+        // --- ACTUALIZACIÓN DEL ÁRBITRO (NUEVO) ---
+        // Sincronizamos la posición del árbitro local con los datos recibidos del servidor
+        if (estadoLocal.getArbitro() != null) {
+            estadoLocal.getArbitro().setX(instantanea.arbitroX);
+            estadoLocal.getArbitro().setY(instantanea.arbitroY);
         }
 
         ResultadoAplicacion resultado = new ResultadoAplicacion();

@@ -1,10 +1,6 @@
-
 package com.proyecto.juegoudp.red;
 
-import com.proyecto.juegoudp.modelo.EstadoJuego;
-import com.proyecto.juegoudp.modelo.Jugador;
-import com.proyecto.juegoudp.modelo.Pelota;
-import com.proyecto.juegoudp.modelo.Zona;
+import com.proyecto.juegoudp.modelo.*;
 import com.proyecto.juegoudp.utilidades.Constantes;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -18,6 +14,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Servidor autoritativo UDP: recibe mensajes, aplica reglas y difunde el estado serializado.
  */
 public class ServidorUDP extends Thread {
+    /**
+     * Instanciamos nuestro arbitro
+     * */
+    private Arbitro arbitro; // Se inicializará desde el estadoJuego
     private DatagramSocket conexionDatagrama;
     private final Map<String, ClienteInfo> clientesPorClave;
     /** Evita duplicar jugadores por {@code UNIRSE} repetido (clave ip:puerto → id). */
@@ -78,9 +78,14 @@ public class ServidorUDP extends Thread {
         clientesPorClave = new ConcurrentHashMap<>();
         idJugadorPorCliente = new ConcurrentHashMap<>();
         estadoJuego = new EstadoJuego();
+
+        // --- VINCULACIÓN DEL ÁRBITRO ---
+        // Obtenemos la referencia del árbitro que vive en el estado para que se mueva en la red
+        this.arbitro = estadoJuego.getArbitro();
+
         activo = true;
         System.out.println("[Servidor] Iniciado en puerto " + Constantes.PUERTO_UDP
-                + " (objetivo lobby: " + jugadoresRequeridos + " jugadores, tiempo: " + duracionPartidaSegundos + "s)");
+            + " (objetivo lobby: " + jugadoresRequeridos + " jugadores, tiempo: " + duracionPartidaSegundos + "s)");
         for (int i = 0; i < 6; i++) {
             float x = 512 + (i % 3 - 1) * 100;
             float y = 384 + (i / 3 - 1) * 80;
@@ -127,14 +132,32 @@ public class ServidorUDP extends Thread {
 
                 boolean partidaTerminada = tiempoRestanteSegundos() <= 0 && instanteInicioPartidaMs > 0;
 
+                // Lógica del Árbitro
+                if (!partidaTerminada) {
+                    // Actualizamos el movimiento aleatorio (frecuencia de 20Hz approx = 0.05s)
+                    arbitro.actualizarAleatorio(0.05f);
+
+                    // Verificamos colisión con todos los jugadores activos
+                    for (Jugador j : estadoJuego.getJugadores().values()) {
+                        if (arbitro.verificarColision(j)) {
+                            // --- NUEVO: PENALIZACIÓN INSTANTÁNEA ---
+                            // Bajamos el puntaje directamente en el servidor
+                            int penalizacion = 5;
+                            j.setPuntaje(Math.max(0, j.getPuntaje() - penalizacion));
+
+                            System.out.println("[Arbitro] Penalización aplicada a " + j.getNombre() + " | Nuevo puntaje: " + j.getPuntaje());
+                        }
+                    }
+                }
+
                 Map<String, ClienteInfoPublica> clientesPublicos = new ConcurrentHashMap<>();
                 for (Map.Entry<String, ClienteInfo> entrada : clientesPorClave.entrySet()) {
                     ClienteInfo info = entrada.getValue();
                     clientesPublicos.put(entrada.getKey(), new ClienteInfoPublica(info.ip, info.puerto));
                 }
                 procesadorMensajes.procesar(
-                        mensaje, ip, puerto, claveCliente, estadoJuego, idJugadorPorCliente,
-                        clientesPublicos, envio, partidaTerminada);
+                    mensaje, ip, puerto, claveCliente, estadoJuego, idJugadorPorCliente,
+                    clientesPublicos, envio, partidaTerminada);
 
                 if (instanteInicioPartidaMs < 0 && estadoJuego.getJugadores().size() >= jugadoresRequeridos) {
                     instanteInicioPartidaMs = System.currentTimeMillis();
@@ -198,8 +221,9 @@ public class ServidorUDP extends Thread {
     }
 
     private String serializarEstado() {
+        // Asegúrate de pasar el objeto arbitro al serializador si quieres sincronizar su posición exacta
         return serializadorEstado.serializar(
-                ++secuenciaEstado, jugadoresRequeridos, tiempoRestanteSegundos(), estadoJuego);
+            ++secuenciaEstado, jugadoresRequeridos, tiempoRestanteSegundos(), estadoJuego);
     }
 
     private int tiempoRestanteSegundos() {

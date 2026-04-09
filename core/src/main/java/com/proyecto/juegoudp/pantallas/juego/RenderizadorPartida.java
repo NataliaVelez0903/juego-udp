@@ -13,7 +13,7 @@ import com.proyecto.juegoudp.modelo.Pelota;
 import com.proyecto.juegoudp.sonido.GestorSonidos;
 
 /**
- * Dibuja el campo, jugadores, pelotas, zonas de gol y HUD (puntajes, tiempo, ayuda).
+ * Dibuja el campo, jugadores, pelotas, zonas de gol, el árbitro y HUD.
  */
 public class RenderizadorPartida implements IRenderizadorPartida {
     private final OrthographicCamera camara;
@@ -26,27 +26,24 @@ public class RenderizadorPartida implements IRenderizadorPartida {
     private final Texture texturaFondo;
     private final Texture texturaPelota;
     private final Texture texturaZona;
+    private final Texture texturaArbitro; // NUEVA TEXTURA
 
     private final float[][] coloresJugador;
     private final ProveedorInterfazPartida proveedorInterfaz;
 
-    /**
-     * Datos de interfaz necesarios para el HUD (provenientes del gestor de estado).
-     */
     public interface ProveedorInterfazPartida {
         int obtenerIdJugadorLocal();
-
         int obtenerTiempoRestanteSegundos();
     }
 
     public RenderizadorPartida(
-            OrthographicCamera camara,
-            ShapeRenderer dibujadorFormas,
-            SpriteBatch loteSprites,
-            BitmapFont fuente,
-            EstadoJuego estadoLocal,
-            GestorSonidos gestorSonidos,
-            ProveedorInterfazPartida proveedorInterfaz
+        OrthographicCamera camara,
+        ShapeRenderer dibujadorFormas,
+        SpriteBatch loteSprites,
+        BitmapFont fuente,
+        EstadoJuego estadoLocal,
+        GestorSonidos gestorSonidos,
+        ProveedorInterfazPartida proveedorInterfaz
     ) {
         this.camara = camara;
         this.dibujadorFormas = dibujadorFormas;
@@ -60,6 +57,7 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         texturaFondo = new Texture(Gdx.files.internal("images/fondo.jpg"));
         texturaPelota = new Texture(Gdx.files.internal("images/ficha.png"));
         texturaZona = new Texture(Gdx.files.internal("images/zonapuntos.jpg"));
+        texturaArbitro = new Texture(Gdx.files.internal("images/arbitro.png")); // CARGA
     }
 
     @Override
@@ -68,11 +66,13 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         camara.update();
 
+        // 1. Fondo
         loteSprites.setProjectionMatrix(camara.combined);
         loteSprites.begin();
         loteSprites.draw(texturaFondo, 0, 0, 1024, 768);
         loteSprites.end();
 
+        // 2. Jugadores (Formas geométricas)
         dibujadorFormas.setProjectionMatrix(camara.combined);
         dibujadorFormas.begin(ShapeRenderer.ShapeType.Filled);
         for (Jugador jugador : estadoLocal.getJugadores().values()) {
@@ -82,6 +82,7 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         }
         dibujadorFormas.end();
 
+        // 3. Entidades con texturas (Zonas, Pelotas y Árbitro)
         loteSprites.begin();
         float yZona = 768 / 2f;
         loteSprites.draw(texturaZona, 100 - 40, yZona - 40, 80, 80);
@@ -91,6 +92,25 @@ public class RenderizadorPartida implements IRenderizadorPartida {
             loteSprites.draw(texturaPelota, pelota.getX() - 24, pelota.getY() - 24, 48, 48);
         }
 
+        // --- DIBUJO DEL ÁRBITRO ---
+        if (estadoLocal.getArbitro() != null) {
+            float tamañoBase = 40f;
+            float escala = 3f; // Queremos el triple
+            float tamañoFinal = tamañoBase * escala; // 120
+            float offset = tamañoFinal / 2f; // 60 para que esté centrado
+
+            loteSprites.draw(texturaArbitro,
+                estadoLocal.getArbitro().getX() - offset,
+                estadoLocal.getArbitro().getY() - offset,
+                tamañoFinal, tamañoFinal);
+        }
+
+        // 4. HUD
+        renderizarHUD();
+        loteSprites.end();
+    }
+
+    private void renderizarHUD() {
         if (proveedorInterfaz.obtenerIdJugadorLocal() < 0) {
             fuente.draw(loteSprites, "Conectando al servidor (UDP)...", 20, 400);
         }
@@ -115,8 +135,6 @@ public class RenderizadorPartida implements IRenderizadorPartida {
             fuente.draw(loteSprites, jugador.getNombre() + ": " + jugador.getPuntaje(), 30, yTexto);
             yTexto -= 30;
         }
-
-        loteSprites.end();
     }
 
     @Override
@@ -131,5 +149,6 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         texturaFondo.dispose();
         texturaPelota.dispose();
         texturaZona.dispose();
+        texturaArbitro.dispose(); // LIBERACIÓN
     }
 }

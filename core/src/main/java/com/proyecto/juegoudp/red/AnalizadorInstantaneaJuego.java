@@ -15,6 +15,7 @@ public final class AnalizadorInstantaneaJuego {
         if (estadoSerializado == null || !estadoSerializado.startsWith("STATE|")) {
             return null;
         }
+        // Usamos límite 7 para capturar el nuevo segmento del árbitro al final
         String[] partes = estadoSerializado.split("\\|", 7);
         if (partes.length < 6) {
             return null;
@@ -67,6 +68,15 @@ public final class AnalizadorInstantaneaJuego {
             instantanea.pelotas.add(pelota);
         }
 
+        // --- PROCESAMIENTO DEL ÁRBITRO ---
+        if (partes.length >= 7 && !partes[6].isEmpty()) {
+            String[] camposArb = partes[6].split(",");
+            if (camposArb.length >= 2) {
+                instantanea.arbitroX = flotanteDesde(camposArb[0], 512f);
+                instantanea.arbitroY = flotanteDesde(camposArb[1], 384f);
+            }
+        }
+
         return instantanea;
     }
 
@@ -94,13 +104,16 @@ public final class AnalizadorInstantaneaJuego {
         }
     }
 
-    /** Instantánea completa parseada del segmento {@code STATE|} (jugadores y pelotas). */
+    /** Instantánea completa parseada del segmento {@code STATE|} (jugadores, pelotas y árbitro). */
     public static final class InstantaneaPartida {
         public long secuencia;
         public int jugadoresRequeridos;
         public int tiempoRestanteSegundos;
         public final List<DatoJugadorInstantanea> jugadores = new ArrayList<>();
         public final List<DatoPelotaInstantanea> pelotas = new ArrayList<>();
+        // Nuevos campos para sincronizar la posición del árbitro
+        public float arbitroX;
+        public float arbitroY;
     }
 
     /** Un registro de jugador tal como viene serializado en el {@code STATE}. */

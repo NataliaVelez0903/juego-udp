@@ -3,6 +3,7 @@ package com.proyecto.juegoudp.modelo;
 /**
  * Participante de la partida: posición en el campo, avatar, puntaje y si porta la pelota.
  */
+
 public class Jugador {
     private int id, avatarId, puntaje;
     private String nombre;
