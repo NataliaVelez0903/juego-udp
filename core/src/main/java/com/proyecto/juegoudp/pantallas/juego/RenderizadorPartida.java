@@ -11,6 +11,9 @@ import com.proyecto.juegoudp.modelo.EstadoJuego;
 import com.proyecto.juegoudp.modelo.Jugador;
 import com.proyecto.juegoudp.modelo.Pelota;
 import com.proyecto.juegoudp.sonido.GestorSonidos;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Dibuja el campo, jugadores, pelotas, zonas de gol y HUD (puntajes, tiempo, ayuda).
@@ -116,16 +119,20 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         if (proveedorInterfaz.obtenerJugadoresRequeridos() >= 4) {
             int puntajeEquipoA = 0;
             int puntajeEquipoB = 0;
-            for (Jugador jugador : estadoLocal.getJugadores().values()) {
+            List<Jugador> jugadores = new ArrayList<>(estadoLocal.getJugadores().values());
+            jugadores.sort(Comparator.comparingInt(Jugador::getId));
+            for (Jugador jugador : jugadores) {
                 if (esEquipoA(jugador.getId())) {
                     puntajeEquipoA += jugador.getPuntaje();
                 } else {
                     puntajeEquipoB += jugador.getPuntaje();
                 }
             }
-            fuente.draw(loteSprites, "Equipo A (J1/J3): " + puntajeEquipoA, 30, yTexto);
+            String nombresEquipoA = nombresEquipo(jugadores, true);
+            String nombresEquipoB = nombresEquipo(jugadores, false);
+            fuente.draw(loteSprites, "Equipo A (" + nombresEquipoA + "): " + puntajeEquipoA, 30, yTexto);
             yTexto -= 30;
-            fuente.draw(loteSprites, "Equipo B (J2/J4): " + puntajeEquipoB, 30, yTexto);
+            fuente.draw(loteSprites, "Equipo B (" + nombresEquipoB + "): " + puntajeEquipoB, 30, yTexto);
             yTexto -= 35;
         }
         for (Jugador jugador : estadoLocal.getJugadores().values()) {
@@ -152,5 +159,19 @@ public class RenderizadorPartida implements IRenderizadorPartida {
 
     private boolean esEquipoA(int idJugador) {
         return idJugador % 2 != 0;
+    }
+
+    private String nombresEquipo(List<Jugador> jugadores, boolean equipoA) {
+        StringBuilder nombres = new StringBuilder();
+        for (Jugador jugador : jugadores) {
+            if (esEquipoA(jugador.getId()) != equipoA) {
+                continue;
+            }
+            if (nombres.length() > 0) {
+                nombres.append(" / ");
+            }
+            nombres.append(jugador.getNombre());
+        }
+        return nombres.length() == 0 ? "-" : nombres.toString();
     }
 }

@@ -7,6 +7,7 @@ import com.proyecto.juegoudp.pantallas.PantallaFinal;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * Única responsabilidad: pasar de partida en curso a la pantalla de resultados.
@@ -38,10 +39,10 @@ public final class NavegacionFinPartida {
                 ganador = "Empate de equipos";
                 puntaje = puntajeEquipoA;
             } else if (puntajeEquipoA > puntajeEquipoB) {
-                ganador = "Equipo A (J1/J3)";
+                ganador = "Equipo A (" + nombresEquipo(ranking, true) + ")";
                 puntaje = puntajeEquipoA;
             } else {
-                ganador = "Equipo B (J2/J4)";
+                ganador = "Equipo B (" + nombresEquipo(ranking, false) + ")";
                 puntaje = puntajeEquipoB;
             }
         }
@@ -50,5 +51,19 @@ public final class NavegacionFinPartida {
 
     private static boolean esEquipoA(int idJugador) {
         return idJugador % 2 != 0;
+    }
+
+    private static String nombresEquipo(List<Jugador> jugadores, boolean equipoA) {
+        StringBuilder nombres = new StringBuilder();
+        for (Jugador jugador : jugadores) {
+            if (esEquipoA(jugador.getId()) != equipoA) {
+                continue;
+            }
+            if (nombres.length() > 0) {
+                nombres.append(" / ");
+            }
+            nombres.append(jugador.getNombre());
+        }
+        return nombres.length() == 0 ? "-" : nombres.toString();
     }
 }
