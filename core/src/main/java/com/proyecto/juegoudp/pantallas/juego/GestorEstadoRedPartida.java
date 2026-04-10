@@ -5,7 +5,14 @@ import com.proyecto.juegoudp.red.AnalizadorInstantaneaJuego;
 import com.proyecto.juegoudp.sonido.GestorSonidos;
 
 /**
+ *
  * Aplica instantáneas de red al modelo local y mantiene datos de sesión (id, tiempo).
+ * @author Sebastian<sebastian.villanedag@autonoma.edu.co>
+ *  * @author Natalia<natalia.velezo@autonoma.edu.co>
+ *  * @author Luis<luisc.gallegom@autonoma.edu.co>
+ *  * @author Juan<juanj.giraldot@autonoma.edu.co>
+ *  *  @version 1.0
+ *  *  @since 04/04/2026
  */
 public final class GestorEstadoRedPartida {
     private final EstadoJuego estadoLocal;
