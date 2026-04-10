@@ -6,11 +6,50 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Convierte la cadena {@code STATE|...} del servidor en datos estructurados para la pantalla de juego.
+ * Analiza la cadena de estado recibida desde el servidor
+ * y la convierte en una estructura utilizable por la pantalla de juego.
+ *
+ * Esta clase interpreta mensajes serializados con el formato
+ * STATE|..., extrayendo la información de la secuencia,
+ * la cantidad de jugadores requeridos, el tiempo restante
+ * y los datos correspondientes a jugadores y pelotas.
+ *
+ * Su propósito es transformar una representación textual
+ * del estado de la partida en objetos estructurados que
+ * puedan ser utilizados por el modelo local del juego.
+ *
+ * Al ser una clase de utilidad, no está pensada para ser instanciada.
+ *
+ * @author Natalia <natalia.velezo@autonoma.edu.co>
+ * @author Sebastian <sebastian.villanedag@autonoma.edu.co>
+ * @author Luis <luisc.gallegom@autonoma.edu.co>
+ * @author Juan Jose <juanj.giraldot@autonoma.edu.co
+ * @version 1.0
+ * since 04/04/2026
  */
 public final class AnalizadorInstantaneaJuego {
+
+    /**
+     * Constructor privado para evitar la creación de instancias
+     * de esta clase utilitaria.
+     */
     private AnalizadorInstantaneaJuego() {}
 
+    /**
+     * Analiza una cadena de estado serializada y construye
+     * una instantánea estructurada de la partida.
+     *
+     * Este método verifica que la cadena tenga el formato esperado,
+     * extrae los datos generales de la instantánea y procesa
+     * los registros de jugadores y pelotas contenidos en ella.
+     *
+     * Si la cadena no tiene un formato válido o no puede
+     * interpretarse correctamente, retorna null.
+     *
+     * @param estadoSerializado cadena serializada con formato STATE|...
+     * @return una instantánea estructurada de la partida,
+     *         o null si la cadena no es válida
+     */
     public static InstantaneaPartida analizar(String estadoSerializado) {
         if (estadoSerializado == null || !estadoSerializado.startsWith("STATE|")) {
             return null;
@@ -70,6 +109,15 @@ public final class AnalizadorInstantaneaJuego {
         return instantanea;
     }
 
+    /**
+     * Decodifica una cadena codificada en formato URL utilizando UTF-8.
+     *
+     * Si ocurre algún error durante la decodificación,
+     * retorna el valor original sin modificar.
+     *
+     * @param valor cadena codificada
+     * @return la cadena decodificada o el valor original si falla la operación
+     */
     private static String decodificar(String valor) {
         try {
             return URLDecoder.decode(valor, StandardCharsets.UTF_8);
@@ -78,6 +126,15 @@ public final class AnalizadorInstantaneaJuego {
         }
     }
 
+    /**
+     * Convierte una cadena en un número entero.
+     *
+     * Si la conversión falla, retorna el valor por defecto indicado.
+     *
+     * @param valor cadena a convertir
+     * @param defecto valor por defecto en caso de error
+     * @return el entero convertido o el valor por defecto
+     */
     private static int enteroDesde(String valor, int defecto) {
         try {
             return Integer.parseInt(valor);
@@ -86,6 +143,15 @@ public final class AnalizadorInstantaneaJuego {
         }
     }
 
+    /**
+     * Convierte una cadena en un número de punto flotante.
+     *
+     * Si la conversión falla, retorna el valor por defecto indicado.
+     *
+     * @param valor cadena a convertir
+     * @param defecto valor por defecto en caso de error
+     * @return el número flotante convertido o el valor por defecto
+     */
     private static float flotanteDesde(String valor, float defecto) {
         try {
             return Float.parseFloat(valor);
@@ -94,34 +160,123 @@ public final class AnalizadorInstantaneaJuego {
         }
     }
 
-    /** Instantánea completa parseada del segmento {@code STATE|} (jugadores y pelotas). */
+    /**
+     * Representa una instantánea completa de la partida
+     * obtenida a partir del mensaje de estado serializado.
+     *
+     * Contiene los datos generales de la instantánea,
+     * así como las colecciones de jugadores y pelotas
+     * reconstruidas desde la cadena de estado.
+     */
     public static final class InstantaneaPartida {
+
+        /**
+         * Número de secuencia de la instantánea.
+         */
         public long secuencia;
+
+        /**
+         * Cantidad de jugadores requeridos para la partida.
+         */
         public int jugadoresRequeridos;
+
+        /**
+         * Tiempo restante de la partida, expresado en segundos.
+         */
         public int tiempoRestanteSegundos;
+
+        /**
+         * Lista de jugadores presentes en la instantánea.
+         */
         public final List<DatoJugadorInstantanea> jugadores = new ArrayList<>();
+
+        /**
+         * Lista de pelotas presentes en la instantánea.
+         */
         public final List<DatoPelotaInstantanea> pelotas = new ArrayList<>();
     }
 
-    /** Un registro de jugador tal como viene serializado en el {@code STATE}. */
+    /**
+     * Representa un registro de jugador contenido
+     * en la instantánea serializada de la partida.
+     */
     public static final class DatoJugadorInstantanea {
+
+        /**
+         * Identificador del jugador.
+         */
         public int id;
+
+        /**
+         * Nombre del jugador.
+         */
         public String nombre;
+
+        /**
+         * Posición horizontal del jugador.
+         */
         public float x;
+
+        /**
+         * Posición vertical del jugador.
+         */
         public float y;
+
+        /**
+         * Puntaje actual del jugador.
+         */
         public int puntaje;
+
+        /**
+         * Identificador del avatar del jugador.
+         */
         public int avatarId;
+
+        /**
+         * Indica si el jugador posee la pelota.
+         */
         public boolean tienePelota;
+
+        /**
+         * Campo adicional de banderas o indicadores.
+         */
         public int flags;
     }
 
-    /** Un registro de pelota tal como viene serializado en el {@code STATE}. */
+    /**
+     * Representa un registro de pelota contenido
+     * en la instantánea serializada de la partida.
+     */
     public static final class DatoPelotaInstantanea {
+
+        /**
+         * Identificador de la pelota.
+         */
         public int id;
+
+        /**
+         * Posición horizontal de la pelota.
+         */
         public float x;
+
+        /**
+         * Posición vertical de la pelota.
+         */
         public float y;
+
+        /**
+         * Velocidad horizontal de la pelota.
+         */
         public float vx;
+
+        /**
+         * Velocidad vertical de la pelota.
+         */
         public float vy;
+
+        /**
+         * Identificador del jugador que controla la pelota.
+         */
         public int idJugador;
     }
 }
