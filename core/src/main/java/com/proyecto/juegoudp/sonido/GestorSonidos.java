@@ -6,27 +6,73 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 
 /**
- * Punto central de audio: música de fondo, efecto de gol y volúmenes (patrón singleton).
+ * Administra los recursos de audio del juego, incluyendo efectos de sonido y música de fondo.
+ *
+ * Esta clase centraliza la carga, reproducción, pausa, detención y liberación de recursos
+ * de audio. También permite controlar el volumen de la música y de los efectos, así como
+ * activar o desactivar el sonido general del sistema.
+ *
+ *
+ * Su implementación sigue el patrón Singleton, de modo que solo exista una única
+ * instancia compartida del gestor de sonidos durante toda la ejecución del juego.
+ *
+ *
+ * @author Natalia <natalia.velezo@autonoma.edu.co>
+ * @author Sebastian <sebastian.villanedag@autonoma.edu.co>
+ * @author Luis <luisc.gallegom@autonoma.edu.co>
+ * @author Juan Jose <juanj.giraldot@autonoma.edu.co
+ * @version 1.0
+ * since 04/04/2026
  */
 public class GestorSonidos {
+    /** Única instancia del gestor de sonidos. */
     private static GestorSonidos instancia;
+
+    /** Efecto de sonido utilizado al registrar un gol. */
     private Sound sonidoGol;
+
+    /** Música de fondo reproducida durante la partida. */
     private Music musicaFondo;
+
+    /** Indica si los efectos de sonido están disponibles para su uso. */
     private boolean sonidosDisponibles = true;
+
+    /** Indica si la música de fondo está disponible para su uso. */
     private boolean musicaDisponible = true;
+
+    /** Volumen configurado para los efectos de sonido. */
     private float volumenEfectos = 1.0f;
+
+    /** Volumen configurado para la música de fondo. */
     private float volumenMusica = 0.3f;
+
+    /** Indica si la música de fondo está activada. */
     private boolean musicaActivada = true;
-    /** Si es {@code true}, música y efectos no se oyen (volumen de salida 0). */
+
+    /**
+     * Indica si todo el sistema de audio está silenciado.
+     *
+     * Cuando este atributo vale true, tanto la música como los efectos
+     * se reproducen con volumen de salida igual a 0.
+     *
+     */
     private boolean silenciado = false;
 
+    /**
+     * Construye el gestor de sonidos e inicializa la carga de efectos y música.
+     */
     private GestorSonidos() {
         cargarSonidos();
         cargarMusica();
     }
 
     /**
-     * Patrón Singleton para tener una única instancia del gestor
+     * Obtiene la única instancia del gestor de sonidos.
+     *
+     * Si la instancia aún no existe, se crea en la primera invocación.
+     *
+     *
+     * @return la instancia única de GestorSonidos
      */
     public static GestorSonidos getInstancia() {
         if (instancia == null) {
@@ -36,7 +82,12 @@ public class GestorSonidos {
     }
 
     /**
-     * Carga todos los efectos de sonido del juego
+     * Carga los efectos de sonido necesarios para el juego.
+     *
+     * Actualmente intenta cargar el archivo sonidos/gol.wav. Si el archivo
+     * no existe o se produce un error durante la carga, el sistema marca los sonidos
+     * como no disponibles.
+     *
      */
     private void cargarSonidos() {
         try {
@@ -57,7 +108,12 @@ public class GestorSonidos {
     }
 
     /**
-     * Carga la música de fondo del juego
+     * Carga la música de fondo del juego.
+     *
+     * Actualmente intenta cargar el archivo sonidos/sonidofondo.wav. Si la carga
+     * se realiza correctamente, la música se configura en modo repetición continua.
+     * En caso de error o inexistencia del archivo, se marca la música como no disponible.
+     *
      */
     private void cargarMusica() {
         try {
@@ -78,7 +134,10 @@ public class GestorSonidos {
     }
 
     /**
-     * Reproduce el sonido de gol con volumen alto
+     * Reproduce el efecto de sonido asociado al gol usando el volumen de efectos configurado.
+     *
+     * Si el sistema está silenciado o el recurso no está disponible, no realiza ninguna acción.
+     *
      */
     public void reproducirGol() {
         float vol = volumenEfectosSalida();
@@ -99,8 +158,13 @@ public class GestorSonidos {
     }
 
     /**
-     * Reproduce el sonido de gol con volumen específico
-     * @param volumen Valor entre 0.0 y 1.0
+     * Reproduce el efecto de sonido asociado al gol con un volumen específico.
+     *
+     * El valor recibido se limita al rango entre 0.0 y 3.0. Si el sistema
+     * está silenciado, el volumen de salida será 0.
+     *
+     *
+     * @param volumen volumen deseado para la reproducción del sonido
      */
     public void reproducirGol(float volumen) {
         float vol = Math.max(0f, Math.min(3f, volumen)) * (silenciado ? 0f : 1f);
@@ -119,7 +183,10 @@ public class GestorSonidos {
     }
 
     /**
-     * Inicia la reproducción de la música de fondo
+     * Inicia la reproducción de la música de fondo.
+     *
+     * La música solo se reproduce si está activada, disponible y no se encuentra ya sonando.
+     *
      */
     public void iniciarMusicaFondo() {
         if (musicaActivada && musicaDisponible && musicaFondo != null) {
@@ -136,7 +203,7 @@ public class GestorSonidos {
     }
 
     /**
-     * Detiene la reproducción de la música de fondo
+     * Detiene completamente la reproducción de la música de fondo.
      */
     public void detenerMusicaFondo() {
         if (musicaFondo != null && musicaFondo.isPlaying()) {
@@ -150,7 +217,7 @@ public class GestorSonidos {
     }
 
     /**
-     * Pausa la música de fondo
+     * Pausa la reproducción actual de la música de fondo.
      */
     public void pausarMusicaFondo() {
         if (musicaFondo != null && musicaFondo.isPlaying()) {
@@ -164,7 +231,7 @@ public class GestorSonidos {
     }
 
     /**
-     * Reanuda la música de fondo
+     * Reanuda la reproducción de la música de fondo si está activada y disponible.
      */
     public void reanudarMusicaFondo() {
         if (musicaActivada && musicaDisponible && musicaFondo != null) {
@@ -181,7 +248,13 @@ public class GestorSonidos {
     }
 
     /**
-     * Establece el volumen de la música de fondo
+     * Establece el volumen preferido para la música de fondo.
+     *
+     * El valor recibido se ajusta automáticamente al rango entre 0.0 y 1.0
+     * Luego se aplica el volumen real al reproductor de música.
+     *
+     *
+     * @param volumen nuevo volumen deseado para la música
      */
     public void setVolumenMusica(float volumen) {
         this.volumenMusica = Math.max(0f, Math.min(1f, volumen));
@@ -190,14 +263,27 @@ public class GestorSonidos {
     }
 
     /**
-     * Establece el volumen de los efectos de sonido
+     * Establece el volumen preferido para los efectos de sonido.
+     *
+     * El valor recibido se ajusta automáticamente al rango entre 0.0 y 1.0
+     *
+     *
+     * @param volumen nuevo volumen deseado para los efectos
      */
     public void setVolumenEfectos(float volumen) {
         this.volumenEfectos = Math.max(0f, Math.min(1f, volumen));
         System.out.println("[GestorSonidos] Volumen de efectos ajustado a: " + this.volumenEfectos);
     }
 
-    /** Volumen real de la música según silencio y si la música está permitida. */
+    /**
+     * Calcula el volumen real de salida de la música.
+     *
+     * Si la música está desactivada o el sistema está silenciado, el volumen de salida será
+     * 0. En caso contrario, devuelve el volumen configurado para la música.
+     *
+     *
+     * @return volumen efectivo de salida para la música
+     */
     private float volumenMusicaSalida() {
         if (!musicaActivada || silenciado) {
             return 0f;
@@ -205,11 +291,18 @@ public class GestorSonidos {
         return volumenMusica;
     }
 
-    /** Volumen real de efectos (0 si está silenciado). */
+    /**
+     * Calcula el volumen real de salida para los efectos de sonido.
+     *
+     * @return volumen efectivo de salida para los efectos; 0 si el sistema está silenciado
+     */
     private float volumenEfectosSalida() {
         return silenciado ? 0f : volumenEfectos;
     }
 
+    /**
+     * Aplica el volumen real calculado al reproductor de música de fondo.
+     */
     private void aplicarVolumenMusicaEnReproductor() {
         if (musicaFondo != null) {
             musicaFondo.setVolume(volumenMusicaSalida());
@@ -217,23 +310,44 @@ public class GestorSonidos {
     }
 
     /**
-     * Silencia o restaura todo el audio (música de fondo y efectos).
+     * Activa o desactiva el silencio global del sistema de audio.
+     *
+     * Esta operación afecta tanto la música de fondo como los efectos de sonido.
+     *
+     *
+     * @param silenciado true para silenciar todo el audio, {@code false} para restaurarlo
      */
     public void setSilenciado(boolean silenciado) {
         this.silenciado = silenciado;
         aplicarVolumenMusicaEnReproductor();
     }
 
+    /**
+     * Alterna el estado de silencio global del sistema de audio.
+     *
+     * Si estaba silenciado, lo restaura. Si no estaba silenciado, lo silencia.
+     *
+     */
     public void alternarSilencio() {
         setSilenciado(!silenciado);
     }
 
+    /**
+     * Indica si el sistema de audio se encuentra silenciado.
+     *
+     * @return true si el audio está silenciado, false en caso contrario
+     */
     public boolean isSilenciado() {
         return silenciado;
     }
 
     /**
-     * Activa o desactiva la música de fondo
+     * Activa o desactiva la música de fondo.
+     *
+     * Si se activa, intenta iniciar su reproducción. Si se desactiva, la detiene.
+     *
+     *
+     * @param activada true para activar la música, false para desactivarla
      */
     public void setMusicaActivada(boolean activada) {
         this.musicaActivada = activada;
@@ -245,14 +359,20 @@ public class GestorSonidos {
     }
 
     /**
-     * Verifica si la música de fondo está sonando
+     * Verifica si la música de fondo se está reproduciendo actualmente.
+     *
+     * @return true si la música está sonando, false en caso contrario
      */
     public boolean isMusicaSonando() {
         return musicaFondo != null && musicaFondo.isPlaying();
     }
 
     /**
-     * Libera los recursos de sonido y música
+     * Libera los recursos de audio utilizados por el gestor.
+     *
+     * Este método debe invocarse cuando el sistema de sonido ya no vaya a utilizarse,
+     * con el fin de evitar fugas de memoria y liberar correctamente los recursos nativos.
+     *
      */
     public void dispose() {
         if (sonidoGol != null) {

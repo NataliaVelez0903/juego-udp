@@ -1,6 +1,5 @@
 images/aguardienteAmarillo.jpg
 images/aguardienteAmarillo.png
-images/arbitro.png
 images/cerbeza.png
 images/dayro.jpg
 images/ficha.png
