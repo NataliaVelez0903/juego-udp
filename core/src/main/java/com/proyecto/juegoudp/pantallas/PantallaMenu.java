@@ -17,21 +17,67 @@ import com.proyecto.juegoudp.utilidades.Constantes;
 import com.proyecto.juegoudp.utilidades.UtilidadesPantalla;
 
 /**
- * Menú principal: nombre, modo anfitrión o cliente, IP, tamaño de sala y duración de partida.
+ * Representa el menú principal del juego.
+ *
+ * Esta pantalla permite al usuario configurar los parámetros iniciales
+ * de la partida, como el nombre del jugador, el modo de juego (anfitrión
+ * o cliente), la dirección IP del servidor, la cantidad de jugadores
+ * y el tiempo límite de la partida.
+ *
+ * También se encarga de validar los datos ingresados y realizar
+ * la navegación hacia la pantalla de espera correspondiente.
+ *
+ * Implementa la interfaz {@link Screen} para integrarse con el
+ * sistema de pantallas de libGDX.
+ *
+ * @author Natalia <natalia.velezo@autonoma.edu.co>
+ * @author Sebastian <sebastian.villanedag@autonoma.edu.co>
+ * @author Luis <luisc.gallegom@autonoma.edu.co>
+ * @author Juan Jose <juanj.giraldot@autonoma.edu.co
+ * @version 1.0
+ * since 04/04/2026
  */
 public class PantallaMenu implements Screen {
+
     private final JuegoPrincipal juego;
     private final Stage stage;
     private final Skin skin;
     private final IFabricaSkin fabricaSkin = new FabricaSkinBasico();
     private final ValidacionMenu validador = new ValidacionMenu();
 
+    /**
+     * Campos de entrada del usuario.
+     */
     private TextField campoNombre, campoIp, campoTiempo;
+
+    /**
+     * Etiqueta para mostrar mensajes de error.
+     */
     private Label labelError;
+
+    /**
+     * Botones de selección de número de jugadores.
+     */
     private TextButton btnJugadores2, btnJugadores4;
+
+    /**
+     * Indica si el usuario está en modo anfitrión.
+     */
     private boolean modoHost = true;
+
+    /**
+     * Número de jugadores seleccionados.
+     */
     private int jugadoresSeleccionados = 2;
 
+    /**
+     * Construye la pantalla del menú principal.
+     *
+     * Inicializa la interfaz gráfica, configura los componentes
+     * y establece el controlador de entrada.
+     *
+     * @param juego referencia al juego principal
+     */
     public PantallaMenu(JuegoPrincipal juego) {
         this.juego = juego;
         stage = new Stage(new FitViewport(Constantes.ANCHO_MUNDO, Constantes.ALTO_MUNDO));
@@ -40,6 +86,9 @@ public class PantallaMenu implements Screen {
         crearUi();
     }
 
+    /**
+     * Crea y posiciona todos los elementos de la interfaz del menú.
+     */
     private void crearUi() {
         Label titulo = new Label("PELOTEROS - MULTIJUGADOR", skin);
         titulo.setPosition(512 - titulo.getWidth()/2, 650);
@@ -48,6 +97,7 @@ public class PantallaMenu implements Screen {
         Label lblNombre = new Label("Tu nombre:", skin);
         lblNombre.setPosition(300, 550);
         stage.addActor(lblNombre);
+
         campoNombre = new TextField("", skin);
         campoNombre.setPosition(420, 545);
         campoNombre.setSize(250, 30);
@@ -80,6 +130,7 @@ public class PantallaMenu implements Screen {
         Label lblJugadores = new Label("Número de jugadores (2 o 4):", skin);
         lblJugadores.setPosition(300, 410);
         stage.addActor(lblJugadores);
+
         btnJugadores2 = new TextButton("2 JUGADORES", skin);
         btnJugadores2.setPosition(500, 402);
         btnJugadores2.setSize(120, 34);
@@ -107,6 +158,7 @@ public class PantallaMenu implements Screen {
         Label lblTiempo = new Label("Tiempo límite (s):", skin);
         lblTiempo.setPosition(300, 360);
         stage.addActor(lblTiempo);
+
         campoTiempo = new TextField("60", skin);
         campoTiempo.setPosition(480, 355);
         campoTiempo.setSize(100,30);
@@ -115,6 +167,7 @@ public class PantallaMenu implements Screen {
         Label lblIp = new Label("IP del Host:", skin);
         lblIp.setPosition(300, 410);
         stage.addActor(lblIp);
+
         campoIp = new TextField("localhost", skin);
         campoIp.setPosition(420, 405);
         campoIp.setSize(250,30);
@@ -139,6 +192,9 @@ public class PantallaMenu implements Screen {
         actualizarVisibilidad();
     }
 
+    /**
+     * Actualiza la visibilidad de los componentes según el modo seleccionado.
+     */
     private void actualizarVisibilidad() {
         boolean host = modoHost;
         for (var actor : stage.getActors()) {
@@ -156,13 +212,20 @@ public class PantallaMenu implements Screen {
         campoIp.setVisible(!host);
     }
 
+    /**
+     * Inicia el flujo de creación o unión a una partida.
+     *
+     * Valida los datos ingresados y redirige a la pantalla de espera.
+     */
     private void iniciar() {
         String nombre = campoNombre.getText().trim();
+
         if (modoHost) {
             ValidacionMenu.Resultado res = validador.validarHost(
-                    nombre,
-                    String.valueOf(jugadoresSeleccionados),
-                    campoTiempo.getText());
+                nombre,
+                String.valueOf(jugadoresSeleccionados),
+                campoTiempo.getText());
+
             if (!res.ok) { labelError.setText(res.error); return; }
 
             juego.setNombreJugador(nombre);
@@ -172,6 +235,7 @@ public class PantallaMenu implements Screen {
             config.setEsHost(true);
             juego.setConfiguracion(config);
             juego.setAvatarSeleccionado(0);
+
             juego.setScreen(new PantallaEspera(juego, true, "localhost"));
         } else {
             String ip = campoIp.getText().trim();
@@ -182,6 +246,7 @@ public class PantallaMenu implements Screen {
             juego.getConfiguracion().setEsHost(false);
             juego.getConfiguracion().setIpServidor(ip);
             juego.setAvatarSeleccionado(0);
+
             juego.setScreen(new PantallaEspera(juego, false, ip));
         }
     }
@@ -192,11 +257,15 @@ public class PantallaMenu implements Screen {
         stage.act(delta);
         stage.draw();
     }
+
     @Override public void resize(int w, int h) { stage.getViewport().update(w,h,true); }
+
     @Override public void dispose() { stage.dispose(); skin.dispose(); }
+
     @Override public void show() {
         stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
     }
+
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}

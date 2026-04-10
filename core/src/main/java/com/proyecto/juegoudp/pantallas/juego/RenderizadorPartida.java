@@ -19,52 +19,174 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Dibuja el campo, jugadores, pelotas, zonas de gol y HUD (puntajes, tiempo, ayuda).
+ * Implementa el renderizado visual de la partida.
+ *
+ * Esta clase se encarga de dibujar los elementos gráficos principales
+ * del juego, incluyendo el fondo, los jugadores, las pelotas,
+ * las zonas de gol y la interfaz de usuario.
+ *
+ * También muestra información relevante durante la partida,
+ * como el tiempo restante, los puntajes individuales o por equipos,
+ * y mensajes de ayuda para el jugador.
+ *
+ * Utiliza herramientas de libGDX para combinar renderizado
+ * de texturas, formas y texto dentro del escenario de juego.
+ *
+ * @author Natalia <natalia.velezo@autonoma.edu.co>
+ * @author Sebastian <sebastian.villanedag@autonoma.edu.co>
+ * @author Luis <luisc.gallegom@autonoma.edu.co>
+ * @author Juan Jose <juanj.giraldot@autonoma.edu.co
+ * @version 1.0
+ * since 04/04/2026
  */
 public class RenderizadorPartida implements IRenderizadorPartida {
+
+    /**
+     * Cámara ortográfica utilizada para visualizar el mundo del juego.
+     */
     private final OrthographicCamera camara;
+
+    /**
+     * Renderizador de formas utilizado para dibujar elementos simples,
+     * como la representación circular de los jugadores.
+     */
     private final ShapeRenderer dibujadorFormas;
+
+    /**
+     * Lote de sprites utilizado para dibujar texturas e imágenes.
+     */
     private final SpriteBatch loteSprites;
+
+    /**
+     * Fuente utilizada para mostrar texto dentro de la partida.
+     */
     private final BitmapFont fuente;
+
+    /**
+     * Estado local del juego, desde donde se obtienen jugadores,
+     * pelotas y demás datos visibles en pantalla.
+     */
     private final EstadoJuego estadoLocal;
+
+    /**
+     * Gestor de sonidos utilizado para consultar el estado del audio.
+     */
     private final GestorSonidos gestorSonidos;
 
+    /**
+     * Textura utilizada como fondo del campo de juego.
+     */
     private final Texture texturaFondo;
+
+    /**
+     * Textura utilizada para representar la pelota.
+     */
     private final Texture texturaPelota;
+
+    /**
+     * Textura utilizada para representar las zonas de gol.
+     */
     private final Texture texturaZona;
 
+    /**
+     * Arreglo de colores utilizado para diferenciar visualmente
+     * a los jugadores según su avatar.
+     */
     private final float[][] coloresJugador;
+
+    /**
+     * Proveedor de información de interfaz utilizada para el HUD.
+     */
     private final ProveedorInterfazPartida proveedorInterfaz;
+
+    /**
+     * Utilidad para medir dimensiones del texto antes de dibujarlo.
+     */
     private final GlyphLayout medirTexto = new GlyphLayout();
-    /** Escala de fuente sobre el campo (nombres y puntos en la bolita). */
+
+    /**
+     * Escala aplicada al texto mostrado sobre los jugadores.
+     */
     private static final float ESCALA_ETIQUETA_JUGADOR = 0.72f;
+
+    /**
+     * Margen general utilizado en los elementos del HUD.
+     */
     private static final float HUD_MARGEN = 24f;
+
+    /**
+     * Separación vertical entre líneas del HUD.
+     */
     private static final float HUD_SEP = 26f;
+
+    /**
+     * Sangría utilizada para mostrar nombres de jugadores debajo
+     * de los encabezados de equipo.
+     */
     private static final float HUD_SUB_NOMBRES = 14f;
-    /** Evita que líneas de equipo tapen el tiempo a la derecha. */
+
+    /**
+     * Ancho máximo permitido para una línea del HUD.
+     */
     private static final float HUD_ANCHO_MAX_LINEA = 500f;
+
+    /**
+     * Posición vertical del texto de ayuda mostrado en la parte inferior.
+     */
     private static final float HUD_PIE_AYUDA = 78f;
+
+    /**
+     * Posición vertical del texto que indica el estado del sonido.
+     */
     private static final float HUD_PIE_SONIDO = 50f;
 
     /**
-     * Datos de interfaz necesarios para el HUD (provenientes del gestor de estado).
+     * Define los datos de interfaz necesarios para dibujar
+     * la información de la partida en pantalla.
      */
     public interface ProveedorInterfazPartida {
+
+        /**
+         * Obtiene el identificador del jugador local.
+         *
+         * @return el identificador del jugador actual
+         */
         int obtenerIdJugadorLocal();
 
+        /**
+         * Obtiene el tiempo restante de la partida.
+         *
+         * @return el tiempo restante en segundos
+         */
         int obtenerTiempoRestanteSegundos();
 
+        /**
+         * Obtiene la cantidad de jugadores requerida para la partida.
+         *
+         * @return el número de jugadores requeridos
+         */
         int obtenerJugadoresRequeridos();
     }
 
+    /**
+     * Construye un nuevo renderizador de la partida.
+     *
+     * @param camara cámara utilizada para visualizar el mundo
+     * @param dibujadorFormas renderizador de formas
+     * @param loteSprites lote de sprites para texturas
+     * @param fuente fuente para dibujar texto
+     * @param estadoLocal estado local del juego
+     * @param gestorSonidos gestor de sonidos del juego
+     * @param proveedorInterfaz proveedor de datos para la interfaz
+     */
     public RenderizadorPartida(
-            OrthographicCamera camara,
-            ShapeRenderer dibujadorFormas,
-            SpriteBatch loteSprites,
-            BitmapFont fuente,
-            EstadoJuego estadoLocal,
-            GestorSonidos gestorSonidos,
-            ProveedorInterfazPartida proveedorInterfaz
+        OrthographicCamera camara,
+        ShapeRenderer dibujadorFormas,
+        SpriteBatch loteSprites,
+        BitmapFont fuente,
+        EstadoJuego estadoLocal,
+        GestorSonidos gestorSonidos,
+        ProveedorInterfazPartida proveedorInterfaz
     ) {
         this.camara = camara;
         this.dibujadorFormas = dibujadorFormas;
@@ -80,6 +202,15 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         texturaZona = new Texture(Gdx.files.internal("images/zonapuntos.jpg"));
     }
 
+    /**
+     * Renderiza todos los elementos visuales de la partida.
+     *
+     * Este método limpia la pantalla, actualiza la cámara y dibuja
+     * el fondo, los jugadores, las pelotas, las zonas de gol
+     * y el HUD con la información actual del juego.
+     *
+     * @param deltaSegundos tiempo transcurrido desde el último fotograma
+     */
     @Override
     public void render(float deltaSegundos) {
         Gdx.gl.glClearColor(0.2f, 0.3f, 0.4f, 1);
@@ -154,12 +285,12 @@ public class RenderizadorPartida implements IRenderizadorPartida {
             String nombresEquipoB = nombresEquipo(jugadores, false);
             yHud -= HUD_SEP;
             dibujarTextoConContorno(loteSprites,
-                    truncarParaHud("Equipo A · " + puntajeEquipoA + " pts"), HUD_MARGEN, yHud);
+                truncarParaHud("Equipo A · " + puntajeEquipoA + " pts"), HUD_MARGEN, yHud);
             yHud -= HUD_SEP;
             dibujarTextoConContorno(loteSprites, truncarParaHud(nombresEquipoA), HUD_MARGEN + HUD_SUB_NOMBRES, yHud);
             yHud -= HUD_SEP + 4;
             dibujarTextoConContorno(loteSprites,
-                    truncarParaHud("Equipo B · " + puntajeEquipoB + " pts"), HUD_MARGEN, yHud);
+                truncarParaHud("Equipo B · " + puntajeEquipoB + " pts"), HUD_MARGEN, yHud);
             yHud -= HUD_SEP;
             dibujarTextoConContorno(loteSprites, truncarParaHud(nombresEquipoB), HUD_MARGEN + HUD_SUB_NOMBRES, yHud);
         }
@@ -174,11 +305,20 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         loteSprites.end();
     }
 
+    /**
+     * Ajusta el renderizador ante cambios en el tamaño de la ventana.
+     *
+     * @param ancho nuevo ancho de la ventana
+     * @param alto nuevo alto de la ventana
+     */
     @Override
     public void resize(int ancho, int alto) {
         // El área de juego lo fija {@link com.badlogic.gdx.utils.viewport.FitViewport} en {@link PantallaJuego}.
     }
 
+    /**
+     * Libera los recursos gráficos utilizados por el renderizador.
+     */
     @Override
     public void dispose() {
         texturaFondo.dispose();
@@ -186,10 +326,26 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         texturaZona.dispose();
     }
 
+    /**
+     * Determina si un jugador pertenece al equipo A.
+     *
+     * @param idJugador identificador del jugador
+     * @return true si el jugador pertenece al equipo A; false en caso contrario
+     */
     private boolean esEquipoA(int idJugador) {
         return idJugador % 2 != 0;
     }
 
+    /**
+     * Ajusta un texto para que no supere el ancho máximo permitido
+     * dentro del HUD.
+     *
+     * Si el texto excede el límite, se recorta y se le agrega
+     * un sufijo de puntos suspensivos.
+     *
+     * @param texto texto original
+     * @return el texto ajustado al ancho máximo permitido
+     */
     private String truncarParaHud(String texto) {
         medirTexto.setText(fuente, texto);
         if (medirTexto.width <= HUD_ANCHO_MAX_LINEA) {
@@ -206,6 +362,15 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         return sufijo;
     }
 
+    /**
+     * Construye una cadena con los nombres de los jugadores
+     * pertenecientes a un equipo.
+     *
+     * @param jugadores lista de jugadores disponibles
+     * @param equipoA true para obtener nombres del equipo A;
+     *                false para obtener nombres del equipo B
+     * @return una cadena con los nombres de los jugadores del equipo
+     */
     private String nombresEquipo(List<Jugador> jugadores, boolean equipoA) {
         StringBuilder nombres = new StringBuilder();
         for (Jugador jugador : jugadores) {
@@ -220,6 +385,15 @@ public class RenderizadorPartida implements IRenderizadorPartida {
         return nombres.length() == 0 ? "-" : nombres.toString();
     }
 
+    /**
+     * Dibuja un texto centrado horizontalmente respecto a una coordenada dada,
+     * aplicando contorno para mejorar la legibilidad.
+     *
+     * @param batch lote de sprites utilizado para dibujar
+     * @param texto texto a renderizar
+     * @param cx coordenada horizontal central
+     * @param yBaseLinea coordenada vertical base del texto
+     */
     private void dibujarTextoCentradoConContorno(SpriteBatch batch, String texto, float cx, float yBaseLinea) {
         medirTexto.setText(fuente, texto);
         float x = cx - medirTexto.width * 0.5f;
@@ -227,7 +401,13 @@ public class RenderizadorPartida implements IRenderizadorPartida {
     }
 
     /**
-     * Contorno oscuro + relleno claro para leer bien sobre el campo y el fondo.
+     * Dibuja un texto con contorno oscuro y relleno claro
+     * para mejorar su visibilidad sobre el fondo del juego.
+     *
+     * @param batch lote de sprites utilizado para dibujar
+     * @param texto texto a renderizar
+     * @param x coordenada horizontal de inicio
+     * @param yBaseLinea coordenada vertical base del texto
      */
     private void dibujarTextoConContorno(SpriteBatch batch, String texto, float x, float yBaseLinea) {
         Color fc = fuente.getColor();

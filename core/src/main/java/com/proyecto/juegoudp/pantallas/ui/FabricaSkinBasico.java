@@ -8,9 +8,37 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 
 /**
- * {@link Skin} mínimo con fuente por defecto (menús y salas).
+ * Implementa una fábrica de skins básicos para la interfaz de usuario.
+ *
+ * Esta clase se encarga de construir un objeto {Skin} mínimo
+ * con los estilos necesarios para etiquetas, botones y campos de texto
+ * utilizados en los menús y salas del juego.
+ *
+ * Utiliza una fuente por defecto y configura estilos simples
+ * para los componentes visuales básicos de la interfaz.
+ *
+ * Su propósito es centralizar la creación de un skin funcional
+ * y reutilizable para elementos de la interfaz gráfica.
+ *
+ * @author Natalia <natalia.velezo@autonoma.edu.co>
+ * @author Sebastian <sebastian.villanedag@autonoma.edu.co>
+ * @author Luis <luisc.gallegom@autonoma.edu.co>
+ * @author Juan Jose <juanj.giraldot@autonoma.edu.co
+ * @version 1.0
+ * since 04/04/2026
  */
 public class FabricaSkinBasico implements IFabricaSkin {
+
+    /**
+     * Crea y configura un skin básico con estilos por defecto
+     * para etiquetas, botones y campos de texto.
+     *
+     * Este método construye un nuevo objeto {@link Skin},
+     * registra una fuente por defecto y asocia estilos mínimos
+     * para los componentes visuales principales de la interfaz.
+     *
+     * @return un skin básico listo para utilizarse en la interfaz
+     */
     @Override
     public Skin crearSkin() {
         Skin skin = new Skin();

@@ -103,14 +103,15 @@ El proyecto está organizado en los siguientes módulos:
 ## Patrones de diseño utilizados
 
 - **Singleton:**  
-  `GestorSonidos` garantiza una única instancia global de audio.
+  `Se utiliza en la clase GestorSonidos, garantizando una única instancia global para la gestión de audio dentro del juego. Esto evita la duplicación de recursos y centraliza el control del sonido.
 
 - **Callback / Listener:**  
-  `ClienteUDP` notifica eventos y estados mediante escuchas, desacoplando la red de la interfaz.
+  `La clase ClienteUDP implementa un mecanismo de callbacks para notificar eventos y actualizaciones de estado a otros componentes del sistema. Esto permite desacoplar la lógica de red de la interfaz gráfica y facilita la comunicación entre módulos.
 
 - **Delegación:**  
-  `PantallaJuego` delega responsabilidades a componentes especializados como entrada, renderizado y estado de red.
-
+  `La clase PantallaJuego delega responsabilidades específicas en otras clases como ControladorEntradaJuego, RenderizadorPartida y GestorEstadoRedPartida. Esto permite dividir la lógica en componentes especializados, mejorando la claridad y mantenibilidad del código.
+- **Arquitectura modular por capas:**
+  `Arquitectura modular por capas
 ---
 
 ## Comunicación UDP (Sockets)
@@ -142,11 +143,11 @@ El sistema funciona bajo un modelo de servidor autoritativo:
 
 ## Principios SOLID aplicados
 
-- **S (SRP):** Separación entre UI, lógica y red.
-- **O (OCP):** Posibilidad de extender reglas sin modificar la base.
-- **L (LSP):** Las implementaciones respetan el comportamiento esperado de sus abstracciones.
-- **I (ISP):** Interfaces pequeñas y específicas para cada necesidad.
-- **D (DIP):** La UI depende de abstracciones, no de sockets directamente.
+- **S (SRP):** Cada clase tiene una única responsabilidad bien definida. Por ejemplo, ServidorUDP maneja la lógica del servidor, ClienteUDP la comunicación del cliente y RenderizadorPartida la visualización del juego.
+- **O (OCP):** El sistema está diseñado para ser extendido sin modificar su estructura base. Por ejemplo, el uso del enum TipoMensaje permite agregar nuevos tipos de mensajes sin alterar la lógica existente.
+- **L (LSP):** Las clases que heredan de ScreenAdapter (como PantallaMenu, PantallaJuego, etc.) pueden ser utilizadas de manera intercambiable sin afectar el comportamiento del sistema.
+- **I (ISP):** Se utilizan interfaces específicas como IConexionSala y EscuchaSala, evitando dependencias innecesarias y asegurando que cada clase implemente únicamente lo que necesita.
+- **D (DIP):** Las clases dependen de abstracciones en lugar de implementaciones concretas. Por ejemplo, ConexionSalaUdp interactúa mediante la interfaz EscuchaSala, lo que reduce el acoplamiento entre la lógica de red y la interfaz.
 
 ---
 
@@ -199,3 +200,9 @@ El sistema funciona bajo un modelo de servidor autoritativo:
 El proyecto permitió desarrollar un sistema multijugador en tiempo real utilizando comunicación UDP, aplicando conceptos de arquitectura modular, diseño orientado a objetos y sincronización cliente-servidor.
 
 El principal reto fue mantener la consistencia del estado en red, lo cual se abordó mediante un modelo de servidor autoritativo y el envío periódico de instantáneas del juego.
+
+## Autores
+- Juan Jose Giraldo
+- Sebastian Villaneda
+- Natalia Velez
+- Luis Carlos Gallego

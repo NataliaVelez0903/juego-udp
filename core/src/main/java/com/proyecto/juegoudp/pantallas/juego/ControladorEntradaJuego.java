@@ -11,43 +11,144 @@ import com.proyecto.juegoudp.red.Mensaje;
 import com.proyecto.juegoudp.red.TipoMensaje;
 
 /**
- * Entrada del jugador: teclado (WASD) y ratón para arrastrar la pelota.
+ * Controla la entrada del jugador durante la partida.
+ *
+ * Esta clase gestiona la interacción del usuario mediante teclado y ratón,
+ * permitiendo el movimiento del jugador y la manipulación de pelotas
+ * dentro del escenario.
+ *
+ * Se encarga de traducir las acciones del usuario en cambios locales
+ * del estado del juego y en mensajes enviados al servidor para mantener
+ * la sincronización con los demás jugadores.
+ *
+ * Extiende InputAdapter de libGDX para capturar eventos de entrada.
+ *
+ * @author Natalia <natalia.velezo@autonoma.edu.co>
+ * @author Sebastian <sebastian.villanedag@autonoma.edu.co>
+ * @author Luis <luisc.gallegom@autonoma.edu.co>
+ * @author Juan Jose <juanj.giraldot@autonoma.edu.co
+ * @version 1.0
+ * since 04/04/2026
  */
 public class ControladorEntradaJuego extends InputAdapter implements IControladorEntradaJuego {
 
     /**
-     * Retroalimentación hacia la pantalla (estado de movimiento y arrastre).
+     * Define el contrato de comunicación entre el controlador de entrada
+     * y la pantalla de juego.
+     *
+     * Esta interfaz permite consultar el estado actual del jugador,
+     * actualizar movimientos, gestionar el arrastre de pelotas y
+     * notificar acciones relevantes como el control del audio.
      */
     public interface EscuchaEntradaPartida {
+
+        /**
+         * Obtiene el identificador del jugador actual.
+         *
+         * @return el identificador del jugador
+         */
         int obtenerIdJugador();
 
+        /**
+         * Indica si la partida ha finalizado.
+         *
+         * @return true si la partida ha terminado; false en caso contrario
+         */
         boolean partidaEstaFinalizada();
 
+        /**
+         * Configura el estado de movimiento del jugador.
+         *
+         * @param arriba indica movimiento hacia arriba
+         * @param abajo indica movimiento hacia abajo
+         * @param izquierda indica movimiento hacia la izquierda
+         * @param derecha indica movimiento hacia la derecha
+         */
         void configurarMovimiento(boolean arriba, boolean abajo, boolean izquierda, boolean derecha);
 
+        /**
+         * Obtiene el estado actual de las teclas de movimiento.
+         *
+         * @return arreglo de estados de teclas (W, S, A, D)
+         */
         boolean[] obtenerEstadoTeclasMovimiento();
 
+        /**
+         * Establece la pelota actualmente arrastrada por el jugador.
+         *
+         * @param pelota la pelota seleccionada
+         * @param desplazamientoX desplazamiento horizontal relativo
+         * @param desplazamientoY desplazamiento vertical relativo
+         */
         void fijarPelotaArrastrada(Pelota pelota, float desplazamientoX, float desplazamientoY);
 
+        /**
+         * Obtiene la pelota actualmente arrastrada.
+         *
+         * @return la pelota en arrastre, o null si no hay
+         */
         Pelota obtenerPelotaArrastrada();
 
+        /**
+         * Obtiene el desplazamiento horizontal actual.
+         *
+         * @return desplazamiento en X
+         */
         float obtenerDesplazamientoX();
 
+        /**
+         * Obtiene el desplazamiento vertical actual.
+         *
+         * @return desplazamiento en Y
+         */
         float obtenerDesplazamientoY();
 
+        /**
+         * Define el desplazamiento actual de arrastre.
+         *
+         * @param desplazamientoX desplazamiento horizontal
+         * @param desplazamientoY desplazamiento vertical
+         */
         void fijarDesplazamiento(float desplazamientoX, float desplazamientoY);
 
+        /**
+         * Registra la última posición de arrastre junto con el instante.
+         *
+         * @param x posición horizontal
+         * @param y posición vertical
+         * @param instanteMilisegundos instante en milisegundos
+         */
         void registrarUltimoArrastre(float x, float y, long instanteMilisegundos);
 
+        /**
+         * Obtiene la última posición horizontal registrada durante el arrastre.
+         *
+         * @return coordenada X
+         */
         float obtenerUltimaPosicionArrastreX();
 
+        /**
+         * Obtiene la última posición vertical registrada durante el arrastre.
+         *
+         * @return coordenada Y
+         */
         float obtenerUltimaPosicionArrastreY();
 
+        /**
+         * Obtiene el instante del último evento de arrastre.
+         *
+         * @return instante en milisegundos
+         */
         long obtenerInstanteUltimoArrastre();
 
+        /**
+         * Limpia el estado de arrastre de la pelota.
+         */
         void limpiarArrastrePelota();
 
-        /** Tecla M: alterna silencio global (música y efectos). */
+        /**
+         * Alterna el estado de silencio global del audio.
+         */
         void alternarSilencioAudio();
     }
 
@@ -56,11 +157,19 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
     private final ClienteUDP cliente;
     private final EscuchaEntradaPartida escucha;
 
+    /**
+     * Construye el controlador de entrada del juego.
+     *
+     * @param viewport viewport utilizado para transformar coordenadas de pantalla
+     * @param estadoLocal estado local del juego
+     * @param cliente cliente UDP para enviar acciones al servidor
+     * @param escucha interfaz de comunicación con la pantalla
+     */
     public ControladorEntradaJuego(
-            Viewport viewport,
-            EstadoJuego estadoLocal,
-            ClienteUDP cliente,
-            EscuchaEntradaPartida escucha
+        Viewport viewport,
+        EstadoJuego estadoLocal,
+        ClienteUDP cliente,
+        EscuchaEntradaPartida escucha
     ) {
         this.viewport = viewport;
         this.estadoLocal = estadoLocal;
@@ -68,6 +177,9 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
         this.escucha = escucha;
     }
 
+    /**
+     * Maneja la presión de teclas.
+     */
     @Override
     public boolean keyDown(int codigoTecla) {
         if (escucha.partidaEstaFinalizada()) {
@@ -98,6 +210,9 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
         return true;
     }
 
+    /**
+     * Maneja la liberación de teclas.
+     */
     @Override
     public boolean keyUp(int codigoTecla) {
         boolean[] teclas = escucha.obtenerEstadoTeclasMovimiento();
@@ -116,6 +231,9 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
         return true;
     }
 
+    /**
+     * Maneja el inicio del toque o clic del ratón.
+     */
     @Override
     public boolean touchDown(int posicionPantallaX, int posicionPantallaY, int puntero, int boton) {
         if (escucha.partidaEstaFinalizada()) {
@@ -145,6 +263,9 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
         return true;
     }
 
+    /**
+     * Maneja el arrastre del ratón.
+     */
     @Override
     public boolean touchDragged(int posicionPantallaX, int posicionPantallaY, int puntero) {
         if (escucha.partidaEstaFinalizada()) {
@@ -170,6 +291,9 @@ public class ControladorEntradaJuego extends InputAdapter implements IControlado
         return true;
     }
 
+    /**
+     * Maneja la liberación del toque o clic del ratón.
+     */
     @Override
     public boolean touchUp(int posicionPantallaX, int posicionPantallaY, int puntero, int boton) {
         Pelota pelota = escucha.obtenerPelotaArrastrada();
