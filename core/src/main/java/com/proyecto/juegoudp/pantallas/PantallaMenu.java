@@ -213,9 +213,20 @@ public class PantallaMenu implements Screen {
         });
         stage.addActor(btnIniciar);
 
+        TextButton btnInfo = new TextButton("REGLAS / INFO", skin);
+        btnInfo.setPosition(442, 220);
+        btnInfo.setSize(140, 42);
+        btnInfo.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                juego.setScreen(new PantallaInformacion(juego));
+            }
+        });
+        stage.addActor(btnInfo);
+
         labelError = new Label("", skin);
         labelError.setColor(1,0,0,1);
-        labelError.setPosition(512 - 100, 220);
+        labelError.setPosition(512 - 170, 170);
         stage.addActor(labelError);
 
         actualizarVisibilidad();
