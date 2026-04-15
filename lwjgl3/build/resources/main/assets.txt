@@ -9,6 +9,7 @@ images/imagen_fondo_nuevo.png
 images/pdayro.jpg
 images/pdayroo.png
 images/pnatalia.png
+images/sala_Espera.png
 images/zonapuntos.jpg
 libgdx.png
 sonidos/gol.wav
