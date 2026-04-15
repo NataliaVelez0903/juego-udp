@@ -47,15 +47,31 @@ https://github.com/NataliaVelez0903/juego-udp.git
 ---
 
 ## Reglas del juego
-
-1. Cada jugador controla únicamente su personaje dentro del campo.
-2. Una pelota solo puede ser controlada por un jugador a la vez.
-3. Si una pelota entra en la zona de gol de un jugador, se suman puntos.
-4. La partida finaliza cuando el temporizador llega a cero.
-5. Gana el jugador con mayor puntaje al finalizar el tiempo.
-
+1. Cada jugador controla un personaje dentro del campo.
+2. El objetivo es llevar pelotas a la zona de gol propia para sumar puntos.
+3. Solo se puede transportar una pelota a la vez.
+4. Una pelota solo puede ser controlada por un jugador en un momento dado.
+5. Si una pelota es soltada, queda disponible para cualquier jugador.
+6. Se otorgan puntos únicamente cuando la pelota entra en la zona de gol del jugador.
+7. No es posible anotar en la zona de otro jugador.
+8. Los árbitros se desplazan por el mapa y pueden penalizar a los jugadores al contacto.
+9. La partida tiene una duración limitada definida por el anfitrión.
+10. Al finalizar el tiempo, gana el jugador o equipo con mayor puntaje.
 ---
 
+## Condiciones de juego 
+1. Se requiere un mínimo de 2 jugadores para iniciar la partida.
+2. El anfitrión configura el tiempo, número de jugadores y reglas adicionales.
+3. El servidor controla todas las acciones para mantener la consistencia del juego.
+4. La partida finaliza automáticamente cuando el tiempo llega a cero.
+
+## Sistema de puntaje
+- Cada pelota anotada en la zona de gol otorga 1 punto.
+- El puntaje se calcula en el servidor y se sincroniza en tiempo real con todos los jugadores.
+- El sistema evita duplicación de puntos mediante validación del estado del juego.
+- Si un árbitro colisiona con un jugador, se le resta puntaje.
+
+---
 ## Controles
 
 - **W, A, S, D:** mover jugador
