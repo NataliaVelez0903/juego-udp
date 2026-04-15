@@ -36,22 +36,28 @@ public class PantallaInformacion implements Screen {
         stage.addActor(titulo);
 
         String texto = ""
-            + "PELOTEROS es un juego multijugador UDP en tiempo real.\n\n"
-            + "OBJETIVO:\n"
-            + "- Mover pelotas a las zonas de gol para sumar puntos.\n"
-            + "- En modo 4 jugadores se juega por equipos.\n\n"
-            + "CONTROLES:\n"
-            + "- WASD: mover jugador\n"
-            + "- Mouse: arrastrar y soltar pelota\n"
-            + "- M: activar/silenciar sonido\n\n"
-            + "REGLAS PRINCIPALES:\n"
-            + "- Cada gol suma puntos.\n"
-            + "- La partida termina cuando se acaba el tiempo.\n"
-            + "- Los arbitros se mueven por toda la cancha.\n"
-            + "- Si un arbitro te toca, te quita puntos.\n\n"
-            + "MODOS:\n"
-            + "- Host: crea la partida y configura jugadores, tiempo y arbitros.\n"
-            + "- Cliente: se une por IP o usando busqueda LAN.";
+                + "PELOTEROS es un juego multijugador en tiempo real.\n\n"
+                + "OBJETIVO DEL JUEGO:\n"
+                + "- Lleva la mayor cantidad de pelotas a tu zona de gol.\n"
+                + "- Gana el jugador o equipo con mas puntos al final de la partida.\n\n"
+                + "CONTROLES:\n"
+                + "- WASD: mover jugador\n"
+                + "- Mouse: tomar, arrastrar y soltar pelota\n"
+                + "- M: activar o silenciar sonido\n\n"
+                + "REGLAS DEL JUEGO:\n"
+                + "- Cada jugador controla un solo personaje.\n"
+                + "- Solo puedes mover una pelota a la vez.\n"
+                + "- Para tomar una pelota debes hacer clic sobre ella.\n"
+                + "- Si sueltas la pelota, cualquier jugador puede tomarla.\n"
+                + "- Cada pelota que entre en tu zona de gol suma puntos.\n"
+                + "- No puedes anotar en la zona de otro jugador.\n"
+                + "- Los arbitros recorren la cancha constantemente.\n"
+                + "- Si un arbitro te toca, perderas puntos.\n"
+                + "- La partida termina cuando el tiempo se agota.\n"
+                + "- Gana quien tenga mas puntos al final.\n\n"
+                + "MODOS DE JUEGO:\n"
+                + "- Host: crea la partida y configura jugadores, tiempo y arbitros.\n"
+                + "- Cliente: se une a una partida por IP o por busqueda LAN.";
 
         Label contenido = new Label(texto, skin);
         contenido.setWrap(true);
@@ -98,4 +104,3 @@ public class PantallaInformacion implements Screen {
         skin.dispose();
     }
 }
-
