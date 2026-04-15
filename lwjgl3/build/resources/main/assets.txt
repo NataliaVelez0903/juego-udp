@@ -1,5 +1,6 @@
 images/ficha.png
 images/fondo.jpg
+images/fondo_espera.png
 images/fondo_final.png
 images/fondo_info.png
 images/imagen_fondo_nuevo.png
