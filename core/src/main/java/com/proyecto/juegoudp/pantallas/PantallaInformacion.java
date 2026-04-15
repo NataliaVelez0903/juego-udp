@@ -29,7 +29,7 @@ public class PantallaInformacion implements Screen {
         this.juego = juego;
         this.stage = new Stage(new FitViewport(Constantes.ANCHO_MUNDO, Constantes.ALTO_MUNDO));
         this.batch = new SpriteBatch();
-        this.fondo = new Texture("images/fondo_informacion.png");
+        this.fondo = new Texture("images/fondo_info.png");
 
         Gdx.input.setInputProcessor(stage);
         this.skin = fabricaSkin.crearSkin();

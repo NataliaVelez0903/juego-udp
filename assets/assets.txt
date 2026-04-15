@@ -1,11 +1,11 @@
 images/ficha.png
 images/fondo.jpg
+images/fondoCrearPartida.png
+images/fondoMenuPrincipal.png
+images/fondoUnirsePartida.png
 images/fondo_final.png
 images/fondo_info.png
 images/imagen_fondo_nuevo.png
-images/pasprilla.jpg
-images/pasprillaa.png
-images/pcristiano.png
 images/pdayro.jpg
 images/pdayroo.png
 images/pnatalia.png

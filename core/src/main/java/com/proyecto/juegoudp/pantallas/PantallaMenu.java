@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -21,10 +22,16 @@ import com.proyecto.juegoudp.pantallas.ui.IFabricaSkin;
 import com.proyecto.juegoudp.red.BuscadorPartidasLan;
 import com.proyecto.juegoudp.red.InfoPartidaLan;
 import com.proyecto.juegoudp.utilidades.Constantes;
+import org.w3c.dom.ls.LSOutput;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PantallaMenu implements Screen {
+
+    private static final int VISTA_MENU = 0;
+    private static final int VISTA_CREAR = 1;
+    private static final int VISTA_UNIRSE = 2;
 
     private final JuegoPrincipal juego;
     private final Stage stage;
@@ -32,99 +39,90 @@ public class PantallaMenu implements Screen {
     private final IFabricaSkin fabricaSkin = new FabricaSkinBasico();
     private final ValidacionMenu validador = new ValidacionMenu();
 
-    private TextField campoNombre;
-    private TextField campoHostIp;
-    private TextField campoIpServidor;
+    private final List<com.badlogic.gdx.scenes.scene2d.Actor> actoresMenu = new ArrayList<>();
+    private final List<com.badlogic.gdx.scenes.scene2d.Actor> actoresCrear = new ArrayList<>();
+    private final List<com.badlogic.gdx.scenes.scene2d.Actor> actoresUnirse = new ArrayList<>();
 
-    private Label labelError;
-    private Label labelBusquedaLan;
-
-    private boolean modoHost = true;
+    private int vistaActual = VISTA_MENU;
     private int jugadoresSeleccionados = 2;
 
     private Texture fondoMenu;
+    private Texture fondoCrear;
+    private Texture fondoUnirse;
     private SpriteBatch batchFondo;
+
+    // Campo nombre compartido
+    private TextField campoNombre;
+
+    // Campos crear
+    private TextField campoTiempo;
+    private TextField campoArbitros;
+    private TextField campoHostIp;
+
+    // Campos unirse
+    private TextField campoIpServidor;
+
+    // Mensajes
+    private Label labelErrorCrear;
+    private Label labelErrorUnirse;
+    private Label labelBusquedaLan;
 
     public PantallaMenu(JuegoPrincipal juego) {
         this.juego = juego;
         this.stage = new Stage(new FitViewport(Constantes.ANCHO_MUNDO, Constantes.ALTO_MUNDO));
-        Gdx.input.setInputProcessor(stage);
         this.skin = fabricaSkin.crearSkin();
 
-        fondoMenu = new Texture(Gdx.files.internal("images/imagen_fondo_nuevo.png"));
+        Gdx.input.setInputProcessor(stage);
+
+        fondoMenu = new Texture(Gdx.files.internal("images/fondoMenuPrincipal.png"));
+        fondoCrear = new Texture(Gdx.files.internal("images/fondoCrearPartida.png"));
+        fondoUnirse = new Texture(Gdx.files.internal("images/fondoUnirsePartida.png"));
         batchFondo = new SpriteBatch();
 
-        crearUi();
-        actualizarModoVisual();
+        crearCampoNombreComun();
+        crearVistaMenu();
+        crearVistaCrear();
+        crearVistaUnirse();
+        actualizarVisibilidad();
     }
 
-    private void crearUi() {
-        // ===== CAMPO NOMBRE =====
+    private void crearCampoNombreComun() {
         campoNombre = new TextField("", skin);
-        campoNombre.setPosition(415, 480);
-        campoNombre.setSize(470, 46);
-        configurarCampoSobreImagen(campoNombre);
+        campoNombre.setPosition(415, 350);
+        campoNombre.setSize(320, 44);
+        configurarCampo(campoNombre);
         stage.addActor(campoNombre);
+    }
 
-        // ===== CAMPO HOST IP (izquierdo) =====
-        campoHostIp = new TextField("localhost", skin);
-        campoHostIp.setPosition(380, 215);
-        campoHostIp.setSize(205, 42);
-        configurarCampoSobreImagen(campoHostIp);
-        campoHostIp.setDisabled(true);
-        stage.addActor(campoHostIp);
-
-        // ===== CAMPO IP SERVIDOR (derecho) =====
-        campoIpServidor = new TextField("", skin);
-        campoIpServidor.setPosition(760, 215);
-        campoIpServidor.setSize(240, 42);
-        configurarCampoSobreImagen(campoIpServidor);
-        stage.addActor(campoIpServidor);
-
-        // ===== BOTÓN HOST =====
-        TextButton btnHost = new TextButton("", skin);
-        btnHost.setPosition(80, 315);
-        btnHost.setSize(438, 92);
-        hacerBotonInvisible(btnHost);
-        btnHost.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+    private void crearVistaMenu() {
+        TextButton btnIrCrear = new TextButton("", skin);
+        btnIrCrear.setPosition(82, 330);
+        btnIrCrear.setSize(438, 92);
+        hacerBotonInvisible(btnIrCrear);
+        btnIrCrear.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
-                modoHost = true;
-                actualizarModoVisual();
+                vistaActual = VISTA_CREAR;
+                actualizarVisibilidad();
             }
         });
-        stage.addActor(btnHost);
+        agregarActorMenu(btnIrCrear);
 
-        // ===== BOTÓN CLIENTE =====
-        TextButton btnCliente = new TextButton("", skin);
-        btnCliente.setPosition(565, 315);
-        btnCliente.setSize(458, 92);
-        hacerBotonInvisible(btnCliente);
-        btnCliente.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+        TextButton btnIrUnirse = new TextButton("", skin);
+        btnIrUnirse.setPosition(565, 330);
+        btnIrUnirse.setSize(458, 92);
+        hacerBotonInvisible(btnIrUnirse);
+        btnIrUnirse.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
-                modoHost = false;
-                actualizarModoVisual();
+                vistaActual = VISTA_UNIRSE;
+                actualizarVisibilidad();
             }
         });
-        stage.addActor(btnCliente);
+        agregarActorMenu(btnIrUnirse);
 
-        // ===== BOTÓN INICIAR =====
-        TextButton btnIniciar = new TextButton("", skin);
-        btnIniciar.setPosition(432, 156);
-        btnIniciar.setSize(170, 62);
-        hacerBotonInvisible(btnIniciar);
-        btnIniciar.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
-            @Override
-            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
-                iniciar();
-            }
-        });
-        stage.addActor(btnIniciar);
-
-        // ===== BOTÓN REGLAS / INFO =====
         TextButton btnInfo = new TextButton("", skin);
-        btnInfo.setPosition(362, 92);
+        btnInfo.setPosition(362, 80);
         btnInfo.setSize(310, 50);
         hacerBotonInvisible(btnInfo);
         btnInfo.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
@@ -133,11 +131,10 @@ public class PantallaMenu implements Screen {
                 juego.setScreen(new PantallaInformacion(juego));
             }
         });
-        stage.addActor(btnInfo);
+        agregarActorMenu(btnInfo);
 
-        // ===== BOTÓN SALIR =====
         TextButton btnSalir = new TextButton("", skin);
-        btnSalir.setPosition(425, 36);
+        btnSalir.setPosition(425, 35);
         btnSalir.setSize(185, 45);
         hacerBotonInvisible(btnSalir);
         btnSalir.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
@@ -146,84 +143,237 @@ public class PantallaMenu implements Screen {
                 Gdx.app.exit();
             }
         });
-        stage.addActor(btnSalir);
+        agregarActorMenu(btnSalir);
+    }
 
-        // ===== BOTÓN BUSCAR LAN SOBRE CUADRO DERECHO =====
+    private void crearVistaCrear() {
+        campoTiempo = new TextField("60", skin);
+        campoTiempo.setPosition(410, 380);
+        campoTiempo.setSize(165, 42);
+        configurarCampo(campoTiempo);
+        agregarActorCrear(campoTiempo);
+
+        campoArbitros = new TextField("0", skin);
+        campoArbitros.setPosition(410, 300);
+        campoArbitros.setSize(165, 42);
+        configurarCampo(campoArbitros);
+        agregarActorCrear(campoArbitros);
+
+        campoHostIp = new TextField("localhost", skin);
+        campoHostIp.setPosition(330, 220);
+        campoHostIp.setSize(245, 44);
+        configurarCampo(campoHostIp);
+        agregarActorCrear(campoHostIp);
+
+        TextButton btn2Jugadores = new TextButton("", skin);
+        btn2Jugadores.setPosition(560, 220);
+        btn2Jugadores.setSize(235, 58);
+        hacerBotonInvisible(btn2Jugadores);
+        btn2Jugadores.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                jugadoresSeleccionados = 2;
+            }
+        });
+        agregarActorCrear(btn2Jugadores);
+
+        TextButton btn4Jugadores = new TextButton("", skin);
+        btn4Jugadores.setPosition(830, 220);
+        btn4Jugadores.setSize(235, 58);
+        hacerBotonInvisible(btn4Jugadores);
+        btn4Jugadores.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                jugadoresSeleccionados = 4;
+            }
+        });
+        agregarActorCrear(btn4Jugadores);
+
+        TextButton btnIniciar = new TextButton("", skin);
+        btnIniciar.setPosition(500, 140);
+        btnIniciar.setSize(250, 80);
+        hacerBotonInvisible(btnIniciar);
+        btnIniciar.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                iniciarComoHost();
+            }
+        });
+        agregarActorCrear(btnIniciar);
+
+        TextButton btnInfo = new TextButton("", skin);
+        btnInfo.setPosition(495, 80);
+        btnInfo.setSize(300, 45);
+        hacerBotonInvisible(btnInfo);
+        btnInfo.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                juego.setScreen(new PantallaInformacion(juego));
+            }
+        });
+        agregarActorCrear(btnInfo);
+
+        TextButton btnSalir = new TextButton("", skin);
+        btnSalir.setPosition(560, 35);
+        btnSalir.setSize(170, 40);
+        hacerBotonInvisible(btnSalir);
+        btnSalir.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                Gdx.app.exit();
+            }
+        });
+        agregarActorCrear(btnSalir);
+
+        TextButton btnVolver = new TextButton("", skin);
+        btnVolver.setPosition(20, 20);
+        btnVolver.setSize(120, 50);
+        hacerBotonInvisible(btnVolver);
+        btnVolver.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                vistaActual = VISTA_MENU;
+                actualizarVisibilidad();
+            }
+        });
+        agregarActorCrear(btnVolver);
+
+        labelErrorCrear = new Label("", skin);
+        labelErrorCrear.setColor(Color.RED);
+        labelErrorCrear.setPosition(470, 140);
+        agregarActorCrear(labelErrorCrear);
+    }
+
+    private void crearVistaUnirse() {
+        campoIpServidor = new TextField("", skin);
+        campoIpServidor.setPosition(300, 380);
+        campoIpServidor.setSize(320, 44);
+        configurarCampo(campoIpServidor);
+        agregarActorUnirse(campoIpServidor);
+
         TextButton btnBuscarLan = new TextButton("", skin);
-        btnBuscarLan.setPosition(780, 260);
-        btnBuscarLan.setSize(240, 42);
+        btnBuscarLan.setPosition(80, 238);
+        btnBuscarLan.setSize(1160, 130);
         hacerBotonInvisible(btnBuscarLan);
         btnBuscarLan.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
-                if (!modoHost) {
-                    buscarPartidasLan();
-                }
+                buscarPartidasLan();
             }
         });
-        stage.addActor(btnBuscarLan);
+        agregarActorUnirse(btnBuscarLan);
 
-        // ===== MENSAJES =====
-        labelError = new Label("", skin);
-        labelError.setColor(Color.RED);
-        labelError.setPosition(390, 225);
-        stage.addActor(labelError);
+        TextButton btnIniciar = new TextButton("", skin);
+        btnIniciar.setPosition(500, 140);
+        btnIniciar.setSize(250, 80);
+        hacerBotonInvisible(btnIniciar);
+        btnIniciar.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                iniciarComoCliente();
+            }
+        });
+        agregarActorUnirse(btnIniciar);
+
+        TextButton btnInfo = new TextButton("", skin);
+        btnInfo.setPosition(495, 80);
+        btnInfo.setSize(300, 45);
+        hacerBotonInvisible(btnInfo);
+        btnInfo.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                juego.setScreen(new PantallaInformacion(juego));
+            }
+        });
+        agregarActorUnirse(btnInfo);
+
+        TextButton btnSalir = new TextButton("", skin);
+        btnSalir.setPosition(560, 30);
+        btnSalir.setSize(170, 40);
+        hacerBotonInvisible(btnSalir);
+        btnSalir.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                Gdx.app.exit();
+            }
+        });
+        agregarActorUnirse(btnSalir);
+
+        TextButton btnVolver = new TextButton("", skin);
+        btnVolver.setPosition(20, 20);
+        btnVolver.setSize(120, 50);
+        hacerBotonInvisible(btnVolver);
+        btnVolver.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                vistaActual = VISTA_MENU;
+                actualizarVisibilidad();
+            }
+        });
+        agregarActorUnirse(btnVolver);
+
+        labelErrorUnirse = new Label("", skin);
+        labelErrorUnirse.setColor(Color.RED);
+        labelErrorUnirse.setPosition(430, 190);
+        agregarActorUnirse(labelErrorUnirse);
 
         labelBusquedaLan = new Label("", skin);
         labelBusquedaLan.setColor(Color.WHITE);
-        labelBusquedaLan.setPosition(700, 225);
-        stage.addActor(labelBusquedaLan);
+        labelBusquedaLan.setPosition(360, 250);
+        agregarActorUnirse(labelBusquedaLan);
     }
 
-    private void actualizarModoVisual() {
-        labelError.setText("");
-        labelBusquedaLan.setText("");
+    private void iniciarComoHost() {
+        String nombre = campoNombre.getText().trim();
+        String tiempo = campoTiempo.getText().trim();
+        String arbitros = campoArbitros.getText().trim();
+        String ipHost = campoHostIp.getText().trim();
 
-        if (modoHost) {
-            campoHostIp.setText("localhost");
-            campoHostIp.setVisible(true);
-
-            campoIpServidor.setText("");
-            campoIpServidor.setVisible(false);
-        } else {
-            campoHostIp.setVisible(false);
-            campoIpServidor.setVisible(true);
-            campoIpServidor.setCursorPosition(campoIpServidor.getText().length());
+        if (nombre.isEmpty()) {
+            labelErrorCrear.setText("Ingresa un nombre");
+            labelErrorCrear.setPosition(300,490);
+            return;
         }
+
+        if (ipHost.isEmpty()) {
+            ipHost = "localhost";
+        }
+
+        labelErrorCrear.setText("");
+
+        juego.setNombreJugador(nombre);
+        ConfiguracionPartida config = juego.getConfiguracion();
+        config.setEsHost(true);
+        config.setNumeroJugadores(jugadoresSeleccionados);
+        config.setTiempoLimite(Integer.parseInt(tiempo));
+        config.setNumeroArbitros(Integer.parseInt(arbitros));
+        juego.setConfiguracion(config);
+        juego.setAvatarSeleccionado(0);
+
+        juego.setScreen(new PantallaEspera(juego, true, ipHost));
     }
 
-    private void configurarCampoSobreImagen(TextField campo) {
-        TextField.TextFieldStyle estiloBase = skin.get(TextField.TextFieldStyle.class);
-        TextField.TextFieldStyle estiloLimpio = new TextField.TextFieldStyle(estiloBase);
+    private void iniciarComoCliente() {
+        String nombre = campoNombre.getText().trim();
+        String ip = campoIpServidor.getText().trim();
 
-        estiloLimpio.background = null;
-        estiloLimpio.focusedBackground = null;
-        estiloLimpio.disabledBackground = null;
-        estiloLimpio.fontColor = Color.BLACK;
-        estiloLimpio.focusedFontColor = Color.BLACK;
-        estiloLimpio.disabledFontColor = Color.BLACK;
-        estiloLimpio.messageFontColor = Color.GRAY;
+        String error = validador.validarCliente(nombre, ip);
+        if (!error.isEmpty()) {
+            labelErrorUnirse.setText(error);
+            return;
+        }
 
-        campo.setStyle(estiloLimpio);
-        campo.setAlignment(Align.left);
-        campo.setCursorPosition(campo.getText().length());
-    }
+        labelErrorUnirse.setText("");
 
-    private void hacerBotonInvisible(TextButton boton) {
-        TextButton.TextButtonStyle estiloBase = skin.get(TextButton.TextButtonStyle.class);
-        TextButton.TextButtonStyle estiloInvisible = new TextButton.TextButtonStyle(estiloBase);
+        juego.setNombreJugador(nombre);
+        juego.getConfiguracion().setEsHost(false);
+        juego.getConfiguracion().setIpServidor(ip);
+        juego.setAvatarSeleccionado(0);
 
-        estiloInvisible.up = null;
-        estiloInvisible.down = null;
-        estiloInvisible.checked = null;
-        estiloInvisible.over = null;
-
-        boton.setStyle(estiloInvisible);
-        boton.getLabel().setVisible(false);
+        juego.setScreen(new PantallaEspera(juego, false, ip));
     }
 
     private void buscarPartidasLan() {
-        labelError.setText("");
         labelBusquedaLan.setText("Buscando...");
 
         new Thread(() -> {
@@ -236,58 +386,94 @@ public class PantallaMenu implements Screen {
 
                 InfoPartidaLan primera = encontradas.get(0);
                 campoIpServidor.setText(primera.getIpHost());
-                labelBusquedaLan.setText("Host encontrado");
+                labelBusquedaLan.setText("Host encontrado: " + primera.getIpHost());
             });
         }, "lan-search-menu").start();
     }
 
-    private void iniciar() {
-        String nombre = campoNombre.getText().trim();
+    private void actualizarVisibilidad() {
+        actualizarLista(actoresMenu, vistaActual == VISTA_MENU);
+        actualizarLista(actoresCrear, vistaActual == VISTA_CREAR);
+        actualizarLista(actoresUnirse, vistaActual == VISTA_UNIRSE);
 
-        if (modoHost) {
-            if (nombre.isEmpty()) {
+        // Mostrar siempre el mismo campo de nombre y moverlo según la vista
+        campoNombre.setVisible(true);
+        campoNombre.setTouchable(Touchable.enabled);
 
-                labelError.setText("Ingresa un nombre");
-                labelError.setPosition(415,480);
-                return;
-            }
-
-            juego.setNombreJugador(nombre);
-            ConfiguracionPartida config = juego.getConfiguracion();
-            config.setNumeroJugadores(jugadoresSeleccionados);
-            config.setTiempoLimite(60);
-            config.setNumeroArbitros(0);
-            config.setEsHost(true);
-            juego.setConfiguracion(config);
-            juego.setAvatarSeleccionado(0);
-
-            juego.setScreen(new PantallaEspera(juego, true, "localhost"));
-        } else {
-            String ip = campoIpServidor.getText().trim();
-            String error = validador.validarCliente(nombre, ip);
-
-            if (!error.isEmpty()) {
-                labelError.setText(error);
-                return;
-            }
-
-            juego.setNombreJugador(nombre);
-            juego.getConfiguracion().setEsHost(false);
-            juego.getConfiguracion().setIpServidor(ip);
-            juego.setAvatarSeleccionado(0);
-
-            juego.setScreen(new PantallaEspera(juego, false, ip));
+        if (vistaActual == VISTA_MENU) {
+            campoNombre.setPosition(300, 460);
+            campoNombre.setSize(320, 44);
+        } else if (vistaActual == VISTA_CREAR) {
+            campoNombre.setPosition(300, 460);
+            campoNombre.setSize(320, 44);
+        } else if (vistaActual == VISTA_UNIRSE) {
+            campoNombre.setPosition(300, 460);
+            campoNombre.setSize(320, 44);
         }
+
+        campoNombre.setCursorPosition(campoNombre.getText().length());
+    }
+
+    private void actualizarLista(List<com.badlogic.gdx.scenes.scene2d.Actor> lista, boolean visible) {
+        for (com.badlogic.gdx.scenes.scene2d.Actor actor : lista) {
+            actor.setVisible(visible);
+            actor.setTouchable(visible ? Touchable.enabled : Touchable.disabled);
+        }
+    }
+
+    private void agregarActorMenu(com.badlogic.gdx.scenes.scene2d.Actor actor) {
+        actoresMenu.add(actor);
+        stage.addActor(actor);
+    }
+
+    private void agregarActorCrear(com.badlogic.gdx.scenes.scene2d.Actor actor) {
+        actoresCrear.add(actor);
+        stage.addActor(actor);
+    }
+
+    private void agregarActorUnirse(com.badlogic.gdx.scenes.scene2d.Actor actor) {
+        actoresUnirse.add(actor);
+        stage.addActor(actor);
+    }
+
+    private void configurarCampo(TextField campo) {
+        TextField.TextFieldStyle estilo = new TextField.TextFieldStyle(campo.getStyle());
+        estilo.background = null;
+        estilo.focusedBackground = null;
+        estilo.disabledBackground = null;
+        estilo.fontColor = Color.BLACK;
+        estilo.focusedFontColor = Color.BLACK;
+        estilo.disabledFontColor = Color.BLACK;
+        campo.setStyle(estilo);
+        campo.setAlignment(Align.left);
+    }
+
+    private void hacerBotonInvisible(TextButton boton) {
+        TextButton.TextButtonStyle estilo = new TextButton.TextButtonStyle(boton.getStyle());
+        estilo.up = null;
+        estilo.down = null;
+        estilo.checked = null;
+        estilo.over = null;
+        boton.setStyle(estilo);
+        boton.getLabel().setVisible(false);
     }
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.2f, 0.2f, 0.3f, 1);
+        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batchFondo.setProjectionMatrix(stage.getViewport().getCamera().combined);
         batchFondo.begin();
-        batchFondo.draw(fondoMenu, 0, 0, Constantes.ANCHO_MUNDO, Constantes.ALTO_MUNDO);
+
+        if (vistaActual == VISTA_MENU) {
+            batchFondo.draw(fondoMenu, 0, 0, Constantes.ANCHO_MUNDO, Constantes.ALTO_MUNDO);
+        } else if (vistaActual == VISTA_CREAR) {
+            batchFondo.draw(fondoCrear, 0, 0, Constantes.ANCHO_MUNDO, Constantes.ALTO_MUNDO);
+        } else {
+            batchFondo.draw(fondoUnirse, 0, 0, Constantes.ANCHO_MUNDO, Constantes.ALTO_MUNDO);
+        }
+
         batchFondo.end();
 
         stage.act(delta);
@@ -295,8 +481,8 @@ public class PantallaMenu implements Screen {
     }
 
     @Override
-    public void resize(int w, int h) {
-        stage.getViewport().update(w, h, true);
+    public void resize(int width, int height) {
+        stage.getViewport().update(width, height, true);
     }
 
     @Override
@@ -304,15 +490,13 @@ public class PantallaMenu implements Screen {
         stage.dispose();
         skin.dispose();
         fondoMenu.dispose();
+        fondoCrear.dispose();
+        fondoUnirse.dispose();
         batchFondo.dispose();
     }
 
-    @Override
-    public void show() {
-        stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
-    }
-
+    @Override public void show() {}
+    @Override public void hide() {}
     @Override public void pause() {}
     @Override public void resume() {}
-    @Override public void hide() {}
 }
