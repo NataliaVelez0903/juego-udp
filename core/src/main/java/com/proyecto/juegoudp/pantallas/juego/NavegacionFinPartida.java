@@ -1,6 +1,7 @@
 package com.proyecto.juegoudp.pantallas.juego;
 
 import com.proyecto.juegoudp.JuegoPrincipal;
+import com.badlogic.gdx.Screen;
 import com.proyecto.juegoudp.modelo.EstadoJuego;
 import com.proyecto.juegoudp.modelo.Jugador;
 import com.proyecto.juegoudp.pantallas.PantallaFinal;
@@ -84,7 +85,11 @@ public final class NavegacionFinPartida {
                 puntaje = puntajeEquipoB;
             }
         }
+        Screen pantallaAnterior = juego.getScreen();
         juego.setScreen(new PantallaFinal(juego, ganador, puntaje, ranking, tiempoTotalSegundosConfig));
+        if (pantallaAnterior != null) {
+            pantallaAnterior.dispose();
+        }
     }
 
     /**

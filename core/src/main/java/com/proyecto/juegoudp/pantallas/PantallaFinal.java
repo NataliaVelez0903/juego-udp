@@ -102,8 +102,8 @@ public class PantallaFinal implements Screen {
             if (pos > 6) break;
         }
 
-        TextButton btnMenu = new TextButton("VOLVER AL MENU", skin);
-        btnMenu.setSize(200, 50);
+        TextButton btnMenu = new TextButton("VOLVER AL MENU PRINCIPAL", skin);
+        btnMenu.setSize(280, 50);
         btnMenu.setPosition(Constantes.ANCHO_MUNDO * 0.5f - btnMenu.getWidth() * 0.5f, 120);
         btnMenu.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
             @Override
