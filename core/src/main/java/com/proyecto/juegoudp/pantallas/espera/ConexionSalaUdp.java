@@ -3,6 +3,7 @@ package com.proyecto.juegoudp.pantallas.espera;
 import com.badlogic.gdx.Gdx;
 import com.proyecto.juegoudp.JuegoPrincipal;
 import com.proyecto.juegoudp.red.AnalizadorEstadoUdp;
+import com.proyecto.juegoudp.red.ServicioDescubrimientoHost;
 import com.proyecto.juegoudp.red.ClienteUDP;
 import com.proyecto.juegoudp.red.Mensaje;
 import com.proyecto.juegoudp.red.ServidorUDP;
@@ -69,6 +70,11 @@ public class ConexionSalaUdp implements IConexionSala {
      * Cliente UDP utilizado para enviar y recibir información de la sala.
      */
     private ClienteUDP cliente;
+
+    /**
+     * Servicio de descubrimiento LAN activo cuando el usuario es host.
+     */
+    private ServicioDescubrimientoHost servicioDescubrimientoHost;
 
     /**
      * Identificador asignado al jugador actual dentro de la partida.
@@ -208,6 +214,9 @@ public class ConexionSalaUdp implements IConexionSala {
             if (esAnfitrion) {
                 servidor = new ServidorUDP(jugadoresRequeridos, duracionPartidaSegundos, arbitros);
                 servidor.start();
+                servicioDescubrimientoHost = new ServicioDescubrimientoHost(
+                    juego.getNombreJugador(), jugadoresRequeridos, duracionPartidaSegundos);
+                servicioDescubrimientoHost.iniciar();
                 cliente = new ClienteUDP("localhost");
             } else {
                 if (direccionIpServidor.isEmpty()) {
@@ -242,6 +251,10 @@ public class ConexionSalaUdp implements IConexionSala {
         if (servidor != null) {
             servidor.detener();
             servidor = null;
+        }
+        if (servicioDescubrimientoHost != null) {
+            servicioDescubrimientoHost.detener();
+            servicioDescubrimientoHost = null;
         }
         if (cliente != null) {
             cliente.cerrar();

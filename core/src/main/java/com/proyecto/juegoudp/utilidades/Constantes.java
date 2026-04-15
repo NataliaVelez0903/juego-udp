@@ -36,6 +36,11 @@ public final class Constantes {
     public static final int PUERTO_UDP = 5000;
 
     /**
+     * Puerto UDP utilizado para descubrimiento LAN de partidas.
+     */
+    public static final int PUERTO_DESCUBRIMIENTO_UDP = 5001;
+
+    /**
      * Ancho del mundo lógico bidimensional del juego.
      *
      * Todas las pantallas y elementos visuales se escalan tomando este valor

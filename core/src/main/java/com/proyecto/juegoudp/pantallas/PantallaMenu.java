@@ -13,8 +13,11 @@ import com.proyecto.juegoudp.modelo.ConfiguracionPartida;
 import com.proyecto.juegoudp.pantallas.menu.ValidacionMenu;
 import com.proyecto.juegoudp.pantallas.ui.FabricaSkinBasico;
 import com.proyecto.juegoudp.pantallas.ui.IFabricaSkin;
+import com.proyecto.juegoudp.red.BuscadorPartidasLan;
+import com.proyecto.juegoudp.red.InfoPartidaLan;
 import com.proyecto.juegoudp.utilidades.Constantes;
 import com.proyecto.juegoudp.utilidades.UtilidadesPantalla;
+import java.util.List;
 
 /**
  * Representa el menú principal del juego.
@@ -54,11 +57,13 @@ public class PantallaMenu implements Screen {
      * Etiqueta para mostrar mensajes de error.
      */
     private Label labelError;
+    private Label labelBusquedaLan;
 
     /**
      * Botones de selección de número de jugadores.
      */
     private TextButton btnJugadores2, btnJugadores4;
+    private TextButton btnBuscarLan;
 
     /**
      * Indica si el usuario está en modo anfitrión.
@@ -182,6 +187,21 @@ public class PantallaMenu implements Screen {
         campoIp.setSize(250,30);
         stage.addActor(campoIp);
 
+        btnBuscarLan = new TextButton("BUSCAR PARTIDAS LAN", skin);
+        btnBuscarLan.setPosition(300, 360);
+        btnBuscarLan.setSize(280, 40);
+        btnBuscarLan.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                buscarPartidasLan();
+            }
+        });
+        stage.addActor(btnBuscarLan);
+
+        labelBusquedaLan = new Label("", skin);
+        labelBusquedaLan.setPosition(300, 330);
+        stage.addActor(labelBusquedaLan);
+
         TextButton btnIniciar = new TextButton("INICIAR", skin);
         btnIniciar.setPosition(462, 280);
         btnIniciar.setSize(100,50);
@@ -220,6 +240,29 @@ public class PantallaMenu implements Screen {
         campoTiempo.setVisible(host);
         campoArbitros.setVisible(host);
         campoIp.setVisible(!host);
+        btnBuscarLan.setVisible(!host);
+        labelBusquedaLan.setVisible(!host);
+    }
+
+    private void buscarPartidasLan() {
+        labelError.setText("");
+        labelBusquedaLan.setText("Buscando partidas en la red local...");
+        btnBuscarLan.setDisabled(true);
+        new Thread(() -> {
+            List<InfoPartidaLan> encontradas = BuscadorPartidasLan.buscar(1800);
+            Gdx.app.postRunnable(() -> {
+                btnBuscarLan.setDisabled(false);
+                if (encontradas.isEmpty()) {
+                    labelBusquedaLan.setText("No se encontraron hosts LAN.");
+                    return;
+                }
+                InfoPartidaLan primera = encontradas.get(0);
+                campoIp.setText(primera.getIpHost());
+                labelBusquedaLan.setText("Host encontrado: " + primera.getNombreHost()
+                    + " | IP: " + primera.getIpHost()
+                    + " | " + primera.getJugadoresRequeridos() + " jugadores");
+            });
+        }, "lan-search-menu").start();
     }
 
     /**
