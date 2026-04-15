@@ -9,6 +9,8 @@ import java.util.function.Consumer;
 
 /**
  * Representa el cliente UDP encargado de comunicarse con el servidor.
+ * 
+ *
  *
  * Esta clase permite enviar mensajes al servidor y recibir información
  * desde la red, ya sea en forma de estados serializados de la partida
