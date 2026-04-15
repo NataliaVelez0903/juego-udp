@@ -1,6 +1,7 @@
 package com.proyecto.juegoudp.red;
 
 import com.proyecto.juegoudp.modelo.EstadoJuego;
+import com.proyecto.juegoudp.modelo.Arbitro;
 import com.proyecto.juegoudp.modelo.Jugador;
 import com.proyecto.juegoudp.modelo.Pelota;
 import com.proyecto.juegoudp.modelo.Zona;
@@ -12,6 +13,7 @@ import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Implementa el servidor autoritativo de la partida utilizando el protocolo UDP.
@@ -96,11 +98,45 @@ public class ServidorUDP extends Thread {
     private final int duracionPartidaSegundos;
 
     /**
+     * Cantidad de árbitros configurados para la partida.
+     */
+    private final int cantidadArbitros;
+
+    /**
      * Instante en milisegundos en el que comenzó la partida.
      *
      * Un valor de {@code -1} indica que la partida aún no ha iniciado.
      */
     private long instanteInicioPartidaMs = -1;
+
+    /**
+     * Instante del último update de simulación (movimiento árbitros/colisiones).
+     */
+    private long instanteUltimaSimulacionMs;
+
+    /**
+     * Controla el cooldown de penalización por toque de árbitro.
+     * Clave: "idJugador:idArbitro". Valor: último ms aplicado.
+     */
+    private final Map<String, Long> ultimoCastigoMsPorContacto = new ConcurrentHashMap<>();
+
+    /**
+     * Programa el próximo cambio de dirección aleatorio por árbitro.
+     * Clave: idArbitro. Valor: instante (ms) en que debe cambiar dirección.
+     */
+    private final Map<Integer, Long> proximoCambioDireccionMsPorArbitro = new ConcurrentHashMap<>();
+
+    /**
+     * Jugador objetivo que el árbitro está persiguiendo actualmente.
+     * Clave: idArbitro. Valor: idJugador objetivo.
+     */
+    private final Map<Integer, Integer> objetivoJugadorPorArbitro = new ConcurrentHashMap<>();
+
+    /**
+     * Instante (ms) en que el árbitro debe elegir un nuevo objetivo.
+     * Clave: idArbitro. Valor: ms.
+     */
+    private final Map<Integer, Long> proximoCambioObjetivoMsPorArbitro = new ConcurrentHashMap<>();
 
     /**
      * Procesador encargado de aplicar la lógica del servidor
@@ -202,7 +238,7 @@ public class ServidorUDP extends Thread {
      * @throws Exception si ocurre un error al crear el socket del servidor
      */
     public ServidorUDP() throws Exception {
-        this(2, 60);
+        this(2, 60, 0);
     }
 
     /**
@@ -213,7 +249,43 @@ public class ServidorUDP extends Thread {
      * @throws Exception si ocurre un error al crear el socket del servidor
      */
     public ServidorUDP(int jugadoresRequeridosSolicitados) throws Exception {
-        this(jugadoresRequeridosSolicitados, 60);
+        this(jugadoresRequeridosSolicitados, 60, 0);
+    }
+
+    /**
+     * Construye un servidor UDP indicando la cantidad de jugadores, duración y árbitros.
+     *
+     * @param jugadoresRequeridosSolicitados cantidad de jugadores solicitada
+     * @param duracionPartidaSegundosSolicitada duración solicitada de la partida
+     * @param cantidadArbitrosSolicitada cantidad de árbitros que se desean en la partida
+     * @throws Exception si ocurre un error al crear el socket del servidor
+     */
+    public ServidorUDP(int jugadoresRequeridosSolicitados, int duracionPartidaSegundosSolicitada, int cantidadArbitrosSolicitada) throws Exception {
+        jugadoresRequeridos = jugadoresRequeridosSolicitados >= 4 ? 4 : 2;
+        if (jugadoresRequeridos > Constantes.MAX_JUGADORES) {
+            throw new IllegalArgumentException("MAX_JUGADORES no soporta modo de 4 equipos.");
+        }
+        duracionPartidaSegundos = Math.max(30, duracionPartidaSegundosSolicitada);
+        cantidadArbitros = Math.max(0, Math.min(12, cantidadArbitrosSolicitada));
+        conexionDatagrama = new DatagramSocket(Constantes.PUERTO_UDP);
+        conexionDatagrama.setSoTimeout(100);
+        clientesPorClave = new ConcurrentHashMap<>();
+        idJugadorPorCliente = new ConcurrentHashMap<>();
+        estadoJuego = new EstadoJuego();
+        activo = true;
+        instanteUltimaSimulacionMs = System.currentTimeMillis();
+        System.out.println("[Servidor] Iniciado en puerto " + Constantes.PUERTO_UDP
+            + " (objetivo lobby: " + jugadoresRequeridos + " jugadores, tiempo: " + duracionPartidaSegundos + "s, arbitros: " + cantidadArbitros + ")");
+        for (int i = 0; i < 6; i++) {
+            float x = 512 + (i % 3 - 1) * 100;
+            float y = 384 + (i / 3 - 1) * 80;
+            estadoJuego.agregarPelota(new Pelota(i, x, y));
+        }
+        float yCentro = 384;
+        estadoJuego.agregarZona(new Zona(0, 1, 100, yCentro, 80, 80));
+        estadoJuego.agregarZona(new Zona(1, 2, 924, yCentro, 80, 80));
+
+        inicializarArbitros();
     }
 
     /**
@@ -231,27 +303,35 @@ public class ServidorUDP extends Thread {
      * @throws Exception si ocurre un error al crear el socket del servidor
      */
     public ServidorUDP(int jugadoresRequeridosSolicitados, int duracionPartidaSegundosSolicitada) throws Exception {
-        jugadoresRequeridos = jugadoresRequeridosSolicitados >= 4 ? 4 : 2;
-        if (jugadoresRequeridos > Constantes.MAX_JUGADORES) {
-            throw new IllegalArgumentException("MAX_JUGADORES no soporta modo de 4 equipos.");
+        this(jugadoresRequeridosSolicitados, duracionPartidaSegundosSolicitada, 0);
+    }
+
+    private void inicializarArbitros() {
+        if (cantidadArbitros <= 0) {
+            return;
         }
-        duracionPartidaSegundos = Math.max(30, duracionPartidaSegundosSolicitada);
-        conexionDatagrama = new DatagramSocket(Constantes.PUERTO_UDP);
-        conexionDatagrama.setSoTimeout(100);
-        clientesPorClave = new ConcurrentHashMap<>();
-        idJugadorPorCliente = new ConcurrentHashMap<>();
-        estadoJuego = new EstadoJuego();
-        activo = true;
-        System.out.println("[Servidor] Iniciado en puerto " + Constantes.PUERTO_UDP
-            + " (objetivo lobby: " + jugadoresRequeridos + " jugadores, tiempo: " + duracionPartidaSegundos + "s)");
-        for (int i = 0; i < 6; i++) {
-            float x = 512 + (i % 3 - 1) * 100;
-            float y = 384 + (i / 3 - 1) * 80;
-            estadoJuego.agregarPelota(new Pelota(i, x, y));
+        ThreadLocalRandom r = ThreadLocalRandom.current();
+        long ahoraMs = System.currentTimeMillis();
+        for (int i = 0; i < cantidadArbitros; i++) {
+            int id = 1000 + i;
+            float x = r.nextFloat(120f, Constantes.ANCHO_MUNDO - 120f);
+            float y = r.nextFloat(120f, Constantes.ALTO_MUNDO - 120f);
+            float[] vel = velocidadAleatoria(r);
+            float vx = vel[0];
+            float vy = vel[1];
+            estadoJuego.agregarArbitro(new Arbitro(id, x, y, vx, vy));
+            proximoCambioDireccionMsPorArbitro.put(id, ahoraMs + r.nextLong(300L, 900L));
+            proximoCambioObjetivoMsPorArbitro.put(id, ahoraMs + r.nextLong(600L, 1500L));
         }
-        float yCentro = 384;
-        estadoJuego.agregarZona(new Zona(0, 1, 100, yCentro, 80, 80));
-        estadoJuego.agregarZona(new Zona(1, 2, 924, yCentro, 80, 80));
+    }
+
+    private float[] velocidadAleatoria(ThreadLocalRandom r) {
+        float ang = r.nextFloat(0f, (float) (Math.PI * 2.0));
+        float speed = r.nextFloat(140f, 260f);
+        return new float[]{
+            (float) Math.cos(ang) * speed,
+            (float) Math.sin(ang) * speed
+        };
     }
 
     /**
@@ -338,19 +418,158 @@ public class ServidorUDP extends Thread {
                     }
                 }
 
-                if (System.currentTimeMillis() - instanteUltimoBroadcast > 50) {
-                    difundirEstado();
-                    instanteUltimoBroadcast = System.currentTimeMillis();
-                }
             } catch (SocketTimeoutException ignored) {
-                // siguiente iteración
+                // siguiente iteración (sin mensajes)
             } catch (Exception e) {
                 if (activo) {
                     e.printStackTrace();
                 }
             }
+
+            // Simulación y broadcast (también cuando no llegan mensajes)
+            long ahoraMs = System.currentTimeMillis();
+            float dt = (ahoraMs - instanteUltimaSimulacionMs) / 1000f;
+            if (dt > 0f) {
+                dt = Math.min(dt, 0.10f);
+                actualizarArbitros(dt);
+                aplicarColisionesArbitro();
+                instanteUltimaSimulacionMs = ahoraMs;
+            }
+
+            if (ahoraMs - instanteUltimoBroadcast > 50) {
+                difundirEstado();
+                instanteUltimoBroadcast = ahoraMs;
+            }
         }
         conexionDatagrama.close();
+    }
+
+    private void actualizarArbitros(float deltaSegundos) {
+        if (estadoJuego.getArbitros().isEmpty()) {
+            return;
+        }
+        final float margen = 28f;
+        final long ahoraMs = System.currentTimeMillis();
+        final ThreadLocalRandom r = ThreadLocalRandom.current();
+        final boolean hayJugadores = !estadoJuego.getJugadores().isEmpty();
+
+        // Parámetros de "caza" para que den miedo
+        final float speedMin = 240f;
+        final float speedMax = 360f;
+        final float suavizado = 0.14f; // 0..1 (más alto = gira más rápido)
+        final float ruidoAnguloRad = 0.35f; // ~20°
+
+        for (Arbitro a : estadoJuego.getArbitros().values()) {
+            if (hayJugadores) {
+                Long proximoObj = proximoCambioObjetivoMsPorArbitro.get(a.getId());
+                if (proximoObj == null || ahoraMs >= proximoObj) {
+                    // Elige un jugador aleatorio como objetivo
+                    int size = estadoJuego.getJugadores().size();
+                    int idx = r.nextInt(size);
+                    int i = 0;
+                    int elegido = -1;
+                    for (Jugador j : estadoJuego.getJugadores().values()) {
+                        if (i++ == idx) {
+                            elegido = j.getId();
+                            break;
+                        }
+                    }
+                    if (elegido != -1) {
+                        objetivoJugadorPorArbitro.put(a.getId(), elegido);
+                    }
+                    proximoCambioObjetivoMsPorArbitro.put(a.getId(), ahoraMs + r.nextLong(600L, 1500L));
+                }
+
+                Integer idObj = objetivoJugadorPorArbitro.get(a.getId());
+                Jugador objetivo = idObj == null ? null : estadoJuego.getJugador(idObj);
+                if (objetivo == null) {
+                    // Fuerza re-elección pronto
+                    proximoCambioObjetivoMsPorArbitro.put(a.getId(), ahoraMs);
+                } else {
+                    float dx = objetivo.getX() - a.getX();
+                    float dy = objetivo.getY() - a.getY();
+                    float len = (float) Math.sqrt(dx * dx + dy * dy);
+                    if (len > 0.001f) {
+                        dx /= len;
+                        dy /= len;
+                    }
+
+                    float speed = r.nextFloat(speedMin, speedMax);
+                    float angRuido = r.nextFloat(-ruidoAnguloRad, ruidoAnguloRad);
+                    float cos = (float) Math.cos(angRuido);
+                    float sin = (float) Math.sin(angRuido);
+                    float ndx = dx * cos - dy * sin;
+                    float ndy = dx * sin + dy * cos;
+
+                    float desVx = ndx * speed;
+                    float desVy = ndy * speed;
+                    a.setVx(a.getVx() + (desVx - a.getVx()) * suavizado);
+                    a.setVy(a.getVy() + (desVy - a.getVy()) * suavizado);
+                }
+            } else {
+                // Sin jugadores: deambular aleatoriamente
+                Long proximo = proximoCambioDireccionMsPorArbitro.get(a.getId());
+                if (proximo == null || ahoraMs >= proximo) {
+                    float[] vel = velocidadAleatoria(r);
+                    a.setVx(vel[0]);
+                    a.setVy(vel[1]);
+                    proximoCambioDireccionMsPorArbitro.put(a.getId(), ahoraMs + r.nextLong(300L, 900L));
+                }
+            }
+
+            float nx = a.getX() + a.getVx() * deltaSegundos;
+            float ny = a.getY() + a.getVy() * deltaSegundos;
+
+            if (nx < margen) {
+                nx = margen;
+                a.setVx(Math.abs(a.getVx()));
+            } else if (nx > Constantes.ANCHO_MUNDO - margen) {
+                nx = Constantes.ANCHO_MUNDO - margen;
+                a.setVx(-Math.abs(a.getVx()));
+            }
+
+            if (ny < margen) {
+                ny = margen;
+                a.setVy(Math.abs(a.getVy()));
+            } else if (ny > Constantes.ALTO_MUNDO - margen) {
+                ny = Constantes.ALTO_MUNDO - margen;
+                a.setVy(-Math.abs(a.getVy()));
+            }
+
+            a.setX(nx);
+            a.setY(ny);
+        }
+    }
+
+    private void aplicarColisionesArbitro() {
+        if (estadoJuego.getArbitros().isEmpty() || estadoJuego.getJugadores().isEmpty()) {
+            return;
+        }
+        final float rJugador = 20f;
+        final float rArbitro = 18f;
+        final float dist2 = (rJugador + rArbitro) * (rJugador + rArbitro);
+        final long ahoraMs = System.currentTimeMillis();
+        final long cooldownMs = 600;
+        final int castigo = 5;
+
+        for (Jugador j : estadoJuego.getJugadores().values()) {
+            float jx = j.getX();
+            float jy = j.getY();
+            for (Arbitro a : estadoJuego.getArbitros().values()) {
+                float dx = jx - a.getX();
+                float dy = jy - a.getY();
+                if (dx * dx + dy * dy > dist2) {
+                    continue;
+                }
+                String clave = j.getId() + ":" + a.getId();
+                long ultimoMs = ultimoCastigoMsPorContacto.getOrDefault(clave, 0L);
+                if (ahoraMs - ultimoMs < cooldownMs) {
+                    continue;
+                }
+                j.restarPuntaje(castigo);
+                ultimoCastigoMsPorContacto.put(clave, ahoraMs);
+            }
+        }
     }
 
     /**

@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.proyecto.juegoudp.modelo.EstadoJuego;
+import com.proyecto.juegoudp.modelo.Arbitro;
 import com.proyecto.juegoudp.modelo.Jugador;
 import com.proyecto.juegoudp.modelo.Pelota;
 import com.proyecto.juegoudp.sonido.GestorSonidos;
@@ -228,6 +229,12 @@ public class RenderizadorPartida implements IRenderizadorPartida {
             float[] color = coloresJugador[jugador.getAvatarId() % coloresJugador.length];
             dibujadorFormas.setColor(color[0], color[1], color[2], 1);
             dibujadorFormas.circle(jugador.getX(), jugador.getY(), 20);
+        }
+
+        // Árbitros (obstáculos móviles)
+        dibujadorFormas.setColor(0.9f, 0.9f, 0.9f, 1f);
+        for (Arbitro a : estadoLocal.getArbitros().values()) {
+            dibujadorFormas.circle(a.getX(), a.getY(), 18);
         }
         dibujadorFormas.end();
 

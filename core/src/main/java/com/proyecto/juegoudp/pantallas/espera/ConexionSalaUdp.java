@@ -203,9 +203,10 @@ public class ConexionSalaUdp implements IConexionSala {
         try {
             jugadoresRequeridos = Math.max(2, Math.min(juego.getConfiguracion().getNumeroJugadores(), Constantes.MAX_JUGADORES));
             duracionPartidaSegundos = Math.max(30, (int) juego.getConfiguracion().getTiempoLimite());
+            int arbitros = Math.max(0, juego.getConfiguracion().getNumeroArbitros());
 
             if (esAnfitrion) {
-                servidor = new ServidorUDP(jugadoresRequeridos, duracionPartidaSegundos);
+                servidor = new ServidorUDP(jugadoresRequeridos, duracionPartidaSegundos, arbitros);
                 servidor.start();
                 cliente = new ClienteUDP("localhost");
             } else {

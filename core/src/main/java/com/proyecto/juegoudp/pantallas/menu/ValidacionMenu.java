@@ -59,6 +59,11 @@ public class ValidacionMenu {
         public final int tiempo;
 
         /**
+         * Cantidad de árbitros validada.
+         */
+        public final int arbitros;
+
+        /**
          * Construye un nuevo resultado de validación.
          *
          * @param ok indica si la validación fue exitosa
@@ -66,11 +71,12 @@ public class ValidacionMenu {
          * @param jugadores cantidad de jugadores validada
          * @param tiempo tiempo validado de la partida
          */
-        private Resultado(boolean ok, String error, int jugadores, int tiempo) {
+        private Resultado(boolean ok, String error, int jugadores, int tiempo, int arbitros) {
             this.ok = ok;
             this.error = error;
             this.jugadores = jugadores;
             this.tiempo = tiempo;
+            this.arbitros = arbitros;
         }
 
         /**
@@ -80,7 +86,7 @@ public class ValidacionMenu {
          * @return un resultado con estado de error
          */
         public static Resultado error(String mensaje) {
-            return new Resultado(false, mensaje, 0, 0);
+            return new Resultado(false, mensaje, 0, 0, 0);
         }
 
         /**
@@ -90,8 +96,8 @@ public class ValidacionMenu {
          * @param tiempo tiempo validado de la partida
          * @return un resultado válido con los datos procesados
          */
-        public static Resultado ok(int jugadores, int tiempo) {
-            return new Resultado(true, "", jugadores, tiempo);
+        public static Resultado ok(int jugadores, int tiempo, int arbitros) {
+            return new Resultado(true, "", jugadores, tiempo, arbitros);
         }
     }
 
@@ -112,15 +118,17 @@ public class ValidacionMenu {
      * @return el resultado de la validación con los datos procesados
      *         o con el error correspondiente
      */
-    public Resultado validarHost(String nombre, String jugadoresTxt, String tiempoTxt) {
+    public Resultado validarHost(String nombre, String jugadoresTxt, String tiempoTxt, String arbitrosTxt) {
         String nom = (nombre == null) ? "" : nombre.trim();
         if (nom.isEmpty()) return Resultado.error("Ingresa un nombre");
 
         int jugadores;
         int tiempo;
+        int arbitros;
         try {
             jugadores = Integer.parseInt(jugadoresTxt.trim());
             tiempo = Integer.parseInt(tiempoTxt.trim());
+            arbitros = Integer.parseInt(arbitrosTxt.trim());
         } catch (Exception e) {
             return Resultado.error("Número inválido");
         }
@@ -134,8 +142,10 @@ public class ValidacionMenu {
             jugadores = Constantes.MAX_JUGADORES;
         }
         if (tiempo < 30) tiempo = 30;
+        if (arbitros < 0) arbitros = 0;
+        if (arbitros > 12) arbitros = 12;
 
-        return Resultado.ok(jugadores, tiempo);
+        return Resultado.ok(jugadores, tiempo, arbitros);
     }
 
     /**

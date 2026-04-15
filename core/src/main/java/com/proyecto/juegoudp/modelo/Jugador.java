@@ -127,6 +127,14 @@ public class Jugador {
     public void sumarPuntaje(int puntos) {this.puntaje += puntos;}
 
     /**
+     * Disminuye el puntaje del jugador restando la cantidad indicada,
+     * sin permitir que el valor final sea negativo.
+     *
+     * @param puntos cantidad de puntos a restar
+     */
+    public void restarPuntaje(int puntos) { this.puntaje = Math.max(0, this.puntaje - puntos); }
+
+    /**
      * Obtiene el nombre del jugador.
      *
      * @return el nombre del jugador

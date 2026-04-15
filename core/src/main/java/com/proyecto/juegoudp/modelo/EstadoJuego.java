@@ -45,6 +45,12 @@ public class EstadoJuego {
     private Map<Integer, Zona> zonas;
 
     /**
+     * Colección de árbitros presentes en la partida.
+     * La clave corresponde al identificador único del árbitro.
+     */
+    private Map<Integer, Arbitro> arbitros;
+
+    /**
      * Construye un nuevo estado de juego e inicializa las colecciones
      * necesarias para almacenar jugadores, pelotas y zonas.
      *
@@ -55,6 +61,7 @@ public class EstadoJuego {
         jugadores = new ConcurrentHashMap<>();
         pelotas = new ConcurrentHashMap<>();
         zonas = new ConcurrentHashMap<>();
+        arbitros = new ConcurrentHashMap<>();
     }
 
     /**
@@ -129,4 +136,26 @@ public class EstadoJuego {
      * @return un mapa que contiene las zonas del juego
      */
     public Map<Integer, Zona> getZonas() {return zonas;}
+
+    /**
+     * Agrega un árbitro al estado actual del juego.
+     *
+     * @param arbitro el árbitro que se desea registrar
+     */
+    public void agregarArbitro(Arbitro arbitro) { arbitros.put(arbitro.getId(), arbitro); }
+
+    /**
+     * Obtiene un árbitro a partir de su identificador.
+     *
+     * @param id el identificador del árbitro a consultar
+     * @return el árbitro asociado al identificador indicado, o {null} si no existe
+     */
+    public Arbitro getArbitro(int id) { return arbitros.get(id); }
+
+    /**
+     * Obtiene la colección completa de árbitros presentes en la partida.
+     *
+     * @return un mapa que contiene los árbitros del juego
+     */
+    public Map<Integer, Arbitro> getArbitros() { return arbitros; }
 }

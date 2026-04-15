@@ -54,7 +54,10 @@ public final class AnalizadorInstantaneaJuego {
         if (estadoSerializado == null || !estadoSerializado.startsWith("STATE|")) {
             return null;
         }
-        String[] partes = estadoSerializado.split("\\|", 7);
+        // Formato:
+        // STATE|seq|req|tiempo|jugadores|pelotas|arbitros
+        // (arbitros puede no existir en versiones antiguas)
+        String[] partes = estadoSerializado.split("\\|", 8);
         if (partes.length < 6) {
             return null;
         }
@@ -104,6 +107,25 @@ public final class AnalizadorInstantaneaJuego {
             pelota.vy = flotanteDesde(campos[4], 0f);
             pelota.idJugador = enteroDesde(campos[5], -1);
             instantanea.pelotas.add(pelota);
+        }
+
+        if (partes.length >= 7) {
+            for (String registro : partes[6].split(";")) {
+                if (registro.isEmpty()) {
+                    continue;
+                }
+                String[] campos = registro.split(",");
+                if (campos.length < 5) {
+                    continue;
+                }
+                DatoArbitroInstantanea arbitro = new DatoArbitroInstantanea();
+                arbitro.id = enteroDesde(campos[0], -1);
+                arbitro.x = flotanteDesde(campos[1], 0f);
+                arbitro.y = flotanteDesde(campos[2], 0f);
+                arbitro.vx = flotanteDesde(campos[3], 0f);
+                arbitro.vy = flotanteDesde(campos[4], 0f);
+                instantanea.arbitros.add(arbitro);
+            }
         }
 
         return instantanea;
@@ -194,6 +216,11 @@ public final class AnalizadorInstantaneaJuego {
          * Lista de pelotas presentes en la instantánea.
          */
         public final List<DatoPelotaInstantanea> pelotas = new ArrayList<>();
+
+        /**
+         * Lista de árbitros presentes en la instantánea.
+         */
+        public final List<DatoArbitroInstantanea> arbitros = new ArrayList<>();
     }
 
     /**
@@ -278,5 +305,17 @@ public final class AnalizadorInstantaneaJuego {
          * Identificador del jugador que controla la pelota.
          */
         public int idJugador;
+    }
+
+    /**
+     * Representa un registro de árbitro contenido
+     * en la instantánea serializada de la partida.
+     */
+    public static final class DatoArbitroInstantanea {
+        public int id;
+        public float x;
+        public float y;
+        public float vx;
+        public float vy;
     }
 }

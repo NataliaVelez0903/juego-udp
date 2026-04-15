@@ -48,7 +48,7 @@ public class PantallaMenu implements Screen {
     /**
      * Campos de entrada del usuario.
      */
-    private TextField campoNombre, campoIp, campoTiempo;
+    private TextField campoNombre, campoIp, campoTiempo, campoArbitros;
 
     /**
      * Etiqueta para mostrar mensajes de error.
@@ -164,6 +164,15 @@ public class PantallaMenu implements Screen {
         campoTiempo.setSize(100,30);
         stage.addActor(campoTiempo);
 
+        Label lblArbitros = new Label("Árbitros:", skin);
+        lblArbitros.setPosition(300, 320);
+        stage.addActor(lblArbitros);
+
+        campoArbitros = new TextField("0", skin);
+        campoArbitros.setPosition(420, 315);
+        campoArbitros.setSize(100, 30);
+        stage.addActor(campoArbitros);
+
         Label lblIp = new Label("IP del Host:", skin);
         lblIp.setPosition(300, 410);
         stage.addActor(lblIp);
@@ -200,7 +209,7 @@ public class PantallaMenu implements Screen {
         for (var actor : stage.getActors()) {
             if (actor instanceof Label) {
                 String txt = ((Label)actor).getText().toString();
-                if (txt.startsWith("Número de jugadores (2 o 4)") || txt.equals("Tiempo límite (s):"))
+                if (txt.startsWith("Número de jugadores (2 o 4)") || txt.equals("Tiempo límite (s):") || txt.equals("Árbitros:"))
                     actor.setVisible(host);
                 if (txt.equals("IP del Host:"))
                     actor.setVisible(!host);
@@ -209,6 +218,7 @@ public class PantallaMenu implements Screen {
         btnJugadores2.setVisible(host);
         btnJugadores4.setVisible(host);
         campoTiempo.setVisible(host);
+        campoArbitros.setVisible(host);
         campoIp.setVisible(!host);
     }
 
@@ -224,7 +234,8 @@ public class PantallaMenu implements Screen {
             ValidacionMenu.Resultado res = validador.validarHost(
                 nombre,
                 String.valueOf(jugadoresSeleccionados),
-                campoTiempo.getText());
+                campoTiempo.getText(),
+                campoArbitros.getText());
 
             if (!res.ok) { labelError.setText(res.error); return; }
 
@@ -232,6 +243,7 @@ public class PantallaMenu implements Screen {
             ConfiguracionPartida config = juego.getConfiguracion();
             config.setNumeroJugadores(res.jugadores);
             config.setTiempoLimite(res.tiempo);
+            config.setNumeroArbitros(res.arbitros);
             config.setEsHost(true);
             juego.setConfiguracion(config);
             juego.setAvatarSeleccionado(0);

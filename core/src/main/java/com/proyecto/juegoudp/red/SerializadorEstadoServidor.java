@@ -1,6 +1,7 @@
 package com.proyecto.juegoudp.red;
 
 import com.proyecto.juegoudp.modelo.EstadoJuego;
+import com.proyecto.juegoudp.modelo.Arbitro;
 import com.proyecto.juegoudp.modelo.Jugador;
 import com.proyecto.juegoudp.modelo.Pelota;
 import java.net.URLEncoder;
@@ -77,6 +78,16 @@ public class SerializadorEstadoServidor implements ISerializadorEstadoServidor {
                 .append(p.getVx()).append(",")
                 .append(p.getVy()).append(",")
                 .append(p.getIdJugador()).append(";");
+        }
+
+        sb.append("|");
+
+        for (Arbitro a : estadoJuego.getArbitros().values()) {
+            sb.append(a.getId()).append(",")
+                .append(a.getX()).append(",")
+                .append(a.getY()).append(",")
+                .append(a.getVx()).append(",")
+                .append(a.getVy()).append(";");
         }
 
         return sb.toString();

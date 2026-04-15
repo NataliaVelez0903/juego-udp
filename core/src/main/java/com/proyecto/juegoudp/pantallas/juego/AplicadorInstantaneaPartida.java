@@ -1,6 +1,7 @@
 package com.proyecto.juegoudp.pantallas.juego;
 
 import com.proyecto.juegoudp.modelo.EstadoJuego;
+import com.proyecto.juegoudp.modelo.Arbitro;
 import com.proyecto.juegoudp.modelo.Jugador;
 import com.proyecto.juegoudp.modelo.Pelota;
 import com.proyecto.juegoudp.red.AnalizadorInstantaneaJuego;
@@ -87,6 +88,12 @@ public final class AplicadorInstantaneaPartida {
             pelota.setVy(datoPelota.vy);
             pelota.setIdJugador(datoPelota.idJugador);
             estadoLocal.agregarPelota(pelota);
+        }
+
+        estadoLocal.getArbitros().clear();
+        for (AnalizadorInstantaneaJuego.DatoArbitroInstantanea datoArbitro : instantanea.arbitros) {
+            Arbitro arbitro = new Arbitro(datoArbitro.id, datoArbitro.x, datoArbitro.y, datoArbitro.vx, datoArbitro.vy);
+            estadoLocal.agregarArbitro(arbitro);
         }
 
         ResultadoAplicacion resultado = new ResultadoAplicacion();

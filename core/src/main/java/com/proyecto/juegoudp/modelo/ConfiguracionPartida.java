@@ -33,6 +33,12 @@ public class ConfiguracionPartida {
     private float tiempoLimite = 60;
 
     /**
+     * Cantidad de árbitros configurados para la partida.
+     * Su valor predeterminado es 0 (sin árbitros).
+     */
+    private int numeroArbitros = 0;
+
+    /**
      * Indica si el usuario actual actuará como anfitrión de la partida.
      * Si es  true, el usuario crea la partida;
      * si es false, se conectará como cliente.
@@ -72,6 +78,20 @@ public class ConfiguracionPartida {
      * @param tiempoLimite el tiempo máximo de la partida, en segundos
      */
     public void setTiempoLimite(float tiempoLimite) {this.tiempoLimite = tiempoLimite;}
+
+    /**
+     * Obtiene la cantidad de árbitros configurada para la partida.
+     *
+     * @return el número de árbitros
+     */
+    public int getNumeroArbitros() { return numeroArbitros; }
+
+    /**
+     * Establece la cantidad de árbitros para la partida.
+     *
+     * @param numeroArbitros cantidad de árbitros
+     */
+    public void setNumeroArbitros(int numeroArbitros) { this.numeroArbitros = numeroArbitros; }
 
     /**
      * Indica si el usuario actuará como anfitrión de la partida.
