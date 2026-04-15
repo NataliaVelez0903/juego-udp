@@ -4,6 +4,9 @@ images/cerbeza.png
 images/dayro.jpg
 images/ficha.png
 images/fondo.jpg
+images/fondo_info.png
+images/fondo_informacion.png
+images/imagen_fondo_nuevo.png
 images/pasprilla.jpg
 images/pasprillaa.png
 images/pcristiano.png
